@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - WhatsUT</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="login-container" id="chat3">
+    <img src="../img/utfpr-logo.png" alt="UTFPR" class="logo-img" />
+    <h2>Entrar no WhatsUT</h2>
+
+    <input type="text" class="form-control" id="usuario" placeholder="Usuário" />
+    <input type="password" class="form-control" id="senha" placeholder="Senha" />
+
+    <button class="btn" onclick="fazerLogin()">Entrar</button>
+    <p style="margin-top:10px;">
+      Não tem conta?
+      <a href="#" onclick="alert('Cadastro ainda não implementado.')">Cadastre-se</a>
+    </p>
+  </div>
+
+  <script>
+    async function fazerLogin() {
+      const user = document.getElementById("usuario").value;
+      const senha = document.getElementById("senha").value;
+
+      if (!user || !senha) {
+        alert("Por favor, preencha usuário e senha.");
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:4567/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario: user, senha: senha }),
+        });
+
+        if (!response.ok) {
+          alert("Erro ao conectar com o servidor.");
+          return;
+        }
+
+        const resultado = await response.json();
+
+        if (resultado.sucesso) {
+          alert("Login realizado com sucesso!");
+          // Aqui você pode redirecionar para outra página, exibir lista de usuários, etc.
+        } else {
+          alert("Usuário ou senha inválidos.");
+        }
+      } catch (error) {
+        alert("Erro ao conectar com o servidor.");
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
