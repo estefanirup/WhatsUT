@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>WhatsUT - Chat</title>
+
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Font Awesome CDN para ícones -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+
+    <!-- Seu CSS customizado -->
+    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../css/chat.css" />
+    <script src="../js/chat.js"></script>
+
+
+</head>
+
+<body>
+
+    <section>
+        <div class="container py-5">
+
+            <div class="row">
+                <div class="col-md-12">
+
+                    <div class="card" id="chat3">
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <!-- Sidebar: lista de usuários -->
+                                <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
+
+                                    <div class="p-3">
+
+                                        <div class="input-group rounded mb-3">
+                                            <input type="search" id="searchUsers" class="form-control rounded"
+                                                placeholder="Buscar usuário" aria-label="Search"
+                                                aria-describedby="search-addon" />
+                                            <span class="input-group-text border-0" id="search-addon">
+                                                <i class="fas fa-search"></i>
+                                            </span>
+                                        </div>
+
+                                        <div style="position: relative; height: 400px; overflow-y:auto;">
+                                            <ul id="userList" class="list-unstyled mb-0">
+                                                <!-- Usuários serão inseridos aqui via JS -->
+                                            </ul>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Área do chat -->
+                                <div class="col-md-6 col-lg-7 col-xl-8 d-flex flex-column">
+
+                                    <div id="chatMessagesContainer" class="pt-3 pe-3 flex-grow-1 overflow-auto">
+                                        <!-- Mensagens aparecerão aqui -->
+                                    </div>
+
+                                    <div
+                                        class="text-muted d-flex justify-content-start align-items-center pe-3 pt-3 mt-2">
+                                        <img src= ../img/icone.png
+                                            alt="avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+
+                                        <input type="text" class="form-control form-control-lg ms-3" id="inputMessage"
+                                            placeholder="Digite sua mensagem" />
+
+                                        <a class="ms-3 text-muted" href="#" id="btnSend"><i
+                                                class="fas fa-paper-plane fa-lg"></i></a>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <script src="../js/chat.js"></script>
+
+</body>
+
+</html>

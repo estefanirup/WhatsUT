@@ -1,0 +1,2 @@
+estefani;Estefani;icone.png;true
+teste;Oswaldo;icone.png;false
