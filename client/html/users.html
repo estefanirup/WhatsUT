@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Usuários - WhatsUT</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <img src="../img/utfpr-logo.png" alt="UTFPR" class="logo-img" />
+    <h2>Usuários</h2>
+    <ul id="userList"></ul>
+    <button class="btn" onclick="voltar()">Voltar</button>
+  </div>
+
+  <script>
+    async function carregarUsuarios() {
+      try {
+        const resposta = await fetch("http://localhost:4567/api/usuarios");
+        if (!resposta.ok) throw new Error('Erro na requisição');
+
+        const lista = await resposta.json();
+        const ul = document.getElementById("userList");
+        ul.innerHTML = "";
+
+        lista.forEach(usuario => {
+          const li = document.createElement("li");
+
+          // Criar imagem do usuário
+          const img = document.createElement("img");
+          img.src = `../img/${usuario.imagem}`;
+          img.alt = usuario.nome;
+          img.style.width = "30px";
+          img.style.height = "30px";
+          img.style.marginRight = "10px";
+          img.style.verticalAlign = "middle";
+
+          // Criar texto com nome + status online/offline
+          const texto = document.createTextNode(`${usuario.nome} - ${usuario.online ? 'Online' : 'Offline'}`);
+
+          li.appendChild(img);
+          li.appendChild(texto);
+          ul.appendChild(li);
+        });
+      } catch (error) {
+        alert("Erro ao carregar lista de usuários.");
+        console.error(error);
+      }
+    }
+
+    function voltar() {
+      window.location.href = "login.html";
+    }
+
+    carregarUsuarios();
+  </script>
+</body>
+</html>

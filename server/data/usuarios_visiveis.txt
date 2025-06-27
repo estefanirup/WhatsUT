@@ -1,0 +1,3 @@
+estefani;estefani;default.png;false
+teste;teste;default.png;false
+Oswaldo;Oswaldo;default.png;false

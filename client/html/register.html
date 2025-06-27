@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Cadastro - WhatsUT</title>
+    <link rel="stylesheet" href="../css/style.css" />
+</head>
+
+<body>
+    <div class="login-container">
+        <img src="../img/utfpr-logo.png" alt="UTFPR" class="logo-img" />
+        <h2>Cadastro de Usuário</h2>
+
+        <input type="text" class="form-control" id="usuario" placeholder="Usuário" />
+        <input type="password" class="form-control" id="senha" placeholder="Senha" />
+
+        <button class="btn" onclick="fazerCadastro()">Cadastrar</button>
+        <p style="margin-top:10px;">
+            Já tem conta? <a href="login.html">Entrar</a>
+        </p>
+    </div>
+
+    <script>
+        async function fazerCadastro() {
+            const usuario = document.getElementById('usuario').value.trim();
+            const senha = document.getElementById('senha').value.trim();
+
+            if (!usuario || !senha) {
+                alert('Preencha usuário e senha.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:4567/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, senha }),
+                });
+
+                if (!response.ok) {
+                    alert('Erro ao conectar com o servidor: ' + response.status);
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (result && result.sucesso) {
+                    alert('Cadastro realizado com sucesso! Agora faça login.');
+                    window.location.href = 'login.html';
+                } else if (result && result.sucesso === false) {
+                    alert('Usuário já existe. Tente outro.');
+                } else {
+                    alert('Resposta inesperada do servidor.');
+                }
+
+            } catch (error) {
+                alert('Erro ao conectar com o servidor.');
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+
+</html>
