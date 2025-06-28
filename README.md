@@ -12,3 +12,12 @@ java -cp ".;lib\spark-core-2.9.4.jar;lib\gson-2.8.9.jar;lib\slf4j-api-1.7.36.jar
 # Em outro terminal (serve arquivos HTML)
 cd client
 python -m http.server 5500
+
+# Modo alternativo de iniciar
+Rodar o arquivo .\start-backend.bat no diretório
+
+# Visualizar o front
+http://localhost:5500/
+
+Login - http://localhost:5500/html/login.html
+Registro - http://localhost:5500/html/register.html
