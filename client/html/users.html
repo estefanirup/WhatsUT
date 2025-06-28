@@ -2,15 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Usuários - WhatsUT</title>
-  <link rel="stylesheet" href="../css/style.css" />
+  <title>WhatsUT - Conversas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/usuarios.css" />
 </head>
 <body>
-  <div class="login-container">
-    <img src="../img/utfpr-logo.png" alt="UTFPR" class="logo-img" />
-    <h2>Usuários</h2>
-    <ul id="userList"></ul>
-    <button class="btn" onclick="voltar()">Voltar</button>
+  <div class="chat-container">
+    <div class="sidebar">
+      <h2>Usuários</h2>
+      <ul class="user-list" id="userList"></ul>
+      <button class="btn-voltar" onclick="voltar()">Voltar</button>
+    </div>
+    <div class="chat-area" id="areaChat">
+      <div class="chat-placeholder">Selecione um usuário para iniciar a conversa.</div>
+    </div>
   </div>
 
   <script>
@@ -25,27 +30,48 @@
 
         lista.forEach(usuario => {
           const li = document.createElement("li");
+          li.classList.add(usuario.online ? 'online' : 'offline');
 
-          // Criar imagem do usuário
           const img = document.createElement("img");
           img.src = `../img/${usuario.imagem}`;
           img.alt = usuario.nome;
-          img.style.width = "30px";
-          img.style.height = "30px";
-          img.style.marginRight = "10px";
-          img.style.verticalAlign = "middle";
 
-          // Criar texto com nome + status online/offline
-          const texto = document.createTextNode(`${usuario.nome} - ${usuario.online ? 'Online' : 'Offline'}`);
+          const infoDiv = document.createElement("div");
+          infoDiv.classList.add("user-info");
+
+          const nome = document.createElement("div");
+          nome.classList.add("user-name");
+          nome.textContent = usuario.nome;
+
+          const status = document.createElement("div");
+          status.classList.add("user-status");
+          status.textContent = usuario.online ? "Online" : "Offline";
+
+          infoDiv.appendChild(nome);
+          infoDiv.appendChild(status);
 
           li.appendChild(img);
-          li.appendChild(texto);
+          li.appendChild(infoDiv);
+          li.onclick = () => abrirChat(usuario);
           ul.appendChild(li);
         });
-      } catch (error) {
-        alert("Erro ao carregar lista de usuários.");
-        console.error(error);
+      } catch (err) {
+        alert("Erro ao carregar usuários.");
+        console.error(err);
       }
+    }
+
+    function abrirChat(usuario) {
+      const chatArea = document.getElementById("areaChat");
+      chatArea.innerHTML = `
+        <div class="chat-header">Chat com ${usuario.nome}</div>
+        <div class="chat-box">
+          <p><i>Mensagens ainda não implementadas.</i></p>
+        </div>
+        <div class="chat-input">
+          <input type="text" placeholder="Digite uma mensagem..." disabled />
+        </div>
+      `;
     }
 
     function voltar() {
