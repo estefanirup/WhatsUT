@@ -40,6 +40,7 @@ async function carregarUsuarios() {
   }
 }
 
+/*
 function abrirChat(usuario) {
   const chatArea = document.getElementById("areaChat");
   chatArea.innerHTML = `
@@ -52,10 +53,16 @@ function abrirChat(usuario) {
     </div>
   `;
 }
+*/
 
 function voltar() {
   window.location.href = "login.html";
 }
 
-// Carrega os usuários quando o script é executado
-document.addEventListener('DOMContentLoaded', carregarUsuarios);
+
+// carregar usuarios
+document.addEventListener('DOMContentLoaded', () => {
+  carregarUsuarios();
+  // Olha novas mensagens
+  //setInterval(verificarNovasMensagens, 5000);
+});

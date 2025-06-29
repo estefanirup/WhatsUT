@@ -1,12 +1,11 @@
 package server.rmi;
 
-import server.model.UsuarioPublico;
-
 import java.io.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import server.model.UsuarioPublico;
 
 public class UsuarioImpl extends UnicastRemoteObject implements UsuarioInterface {
 
@@ -24,13 +23,14 @@ public class UsuarioImpl extends UnicastRemoteObject implements UsuarioInterface
             String linha;
             while ((linha = reader.readLine()) != null) {
                 String[] partes = linha.split(";");
-                if (partes.length >= 4) {
+                if (partes.length >= 5) {
                     String login = partes[0];
-                    String nome = partes[1];
-                    String imagem = partes[2];
-                    boolean online = Boolean.parseBoolean(partes[3]);
+                    int id = Integer.parseInt(partes[1]);
+                    String nome = partes[2];
+                    String imagem = partes[3];
+                    boolean online = Boolean.parseBoolean(partes[4]);
 
-                    UsuarioPublico user = new UsuarioPublico(nome, imagem, online);
+                    UsuarioPublico user = new UsuarioPublico(id, nome, imagem, online);
                     lista.add(user);
                 }
             }

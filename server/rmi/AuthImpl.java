@@ -1,11 +1,10 @@
 package server.rmi;
 
-import utils.CryptoUtil;
-
-import java.rmi.server.UnicastRemoteObject;
-import java.rmi.RemoteException;
 import java.io.*;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import utils.CryptoUtil;
 
 public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
     private final Map<String, String> usuarios = new HashMap<>();
@@ -60,8 +59,8 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
                 String linha;
                 while ((linha = reader.readLine()) != null) {
                     String[] partes = linha.split(";");
-                    if (partes.length == 4) {
-                        visiveisMap.put(partes[0], partes); // login -> {login, nome, imagem, online}
+                    if (partes.length == 5) {
+                        visiveisMap.put(partes[0], partes); // login -> {login, id, nome, imagem, online}
                     }
                 }
             }
@@ -69,11 +68,13 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
 
         // Atualiza todos os usuários cadastrados no sistema
         for (String login : usuarios.keySet()) {
-            String nomePublico = login; // Você pode trocar para um nome mais amigável se quiser
+            String[] userData = visiveisMap.get(login);
+            String id = (userData != null) ? userData[1] : String.valueOf(getNextId());
+            String nomePublico = login; 
             String imagem = IMAGEM_PADRAO;
             String online = logados.contains(login) ? "true" : "false";
 
-            visiveisMap.put(login, new String[] { login, nomePublico, imagem, online });
+            visiveisMap.put(login, new String[] { login, id, nomePublico, imagem, online });
         }
 
         // Reescreve o arquivo com as informações atualizadas
@@ -132,5 +133,25 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
     @Override
     public synchronized List<String> listarUsuarios() throws RemoteException {
         return new ArrayList<>(logados);
+    }
+
+    private int getNextId() {
+        int maxId = 0;
+        File file = new File(VISIVEIS_PATH);
+        if (file.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                String linha;
+                while ((linha = reader.readLine()) != null) {
+                    String[] partes = linha.split(";");
+                    if (partes.length >= 2) {
+                        int id = Integer.parseInt(partes[1]);
+                        if (id > maxId) maxId = id;
+                    }
+                }
+            } catch (IOException | NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        return maxId + 1;
     }
 }
