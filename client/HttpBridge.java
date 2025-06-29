@@ -22,13 +22,13 @@ public class HttpBridge {
 
         final AuthInterface[] authHolder = new AuthInterface[1];
         final UsuarioInterface[] usuarioHolder = new UsuarioInterface[1];
-        //final ChatService[] chatHolder = new ChatService[1];
+        final ChatService[] chatHolder = new ChatService[1];
 
         try {
             Registry registry = LocateRegistry.getRegistry("localhost", 1099);
             authHolder[0] = (AuthInterface) registry.lookup("AuthService");
             usuarioHolder[0] = (UsuarioInterface) registry.lookup("UsuarioService");
-            //chatHolder[0] = (ChatService) registry.lookup("ChatService");
+            chatHolder[0] = (ChatService) registry.lookup("ChatService");
             System.out.println("✅ Conectado ao servidor RMI.");
         } catch (Exception e) {
             System.out.println("❌ Não foi possível conectar ao RMI:");
@@ -65,11 +65,15 @@ public class HttpBridge {
             LoginRequest data = gson.fromJson(req.body(), LoginRequest.class);
 
             boolean sucesso = false;
+            int userId = -1;
             if (authHolder[0] != null) {
                 sucesso = authHolder[0].login(data.usuario, data.senha);
+                if (sucesso) {
+                    userId = authHolder[0].getUserId(data.usuario);
+                }
             }
 
-            return gson.toJson(new LoginResponse(sucesso));
+            return gson.toJson(new LoginResponse(sucesso, userId));
         });
 
         // Registro
@@ -113,9 +117,7 @@ public class HttpBridge {
                 return gson.toJson(Collections.emptyList());
             }
         });
-    }
 
-    /*
     // Mensagens
         post("/api/messages/send", (req, res) -> {
             res.type("application/json");
@@ -131,7 +133,9 @@ public class HttpBridge {
                     chatHolder[0].sendMessage(message);
                     return gson.toJson(new SendMessageResponse(true, message.getId()));
                 }
-                return gson.toJson(new SendMessageResponse(false, -1));
+                else {
+                    return gson.toJson(new SendMessageResponse(false, -1));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 return gson.toJson(new SendMessageResponse(false, -1));
@@ -153,7 +157,7 @@ public class HttpBridge {
                 return gson.toJson(Collections.emptyList());
             }
         });
-    */
+    }
 
     static class LoginRequest {
 
@@ -164,9 +168,11 @@ public class HttpBridge {
     static class LoginResponse {
 
         boolean sucesso;
+        int userId;
 
-        LoginResponse(boolean sucesso) {
+        LoginResponse(boolean sucesso, int userId) {
             this.sucesso = sucesso;
+            this.userId = userId;
         }
     }
 
@@ -187,7 +193,6 @@ public class HttpBridge {
         }
     }
 
-    /*
     static class SendMessageRequest {
 
         int remetenteId;
@@ -205,6 +210,5 @@ public class HttpBridge {
             this.messageId = messageId;
         }
     }
-    */
 
 }

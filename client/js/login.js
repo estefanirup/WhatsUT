@@ -22,6 +22,8 @@ async function fazerLogin() {
     const resultado = await response.json();
 
     if (resultado.sucesso) {
+      sessionStorage.setItem('loggedUserId', resultado.userId);
+      sessionStorage.setItem('username', user);
       alert("Login realizado com sucesso!");
       window.location.href = "users.html";
     } else {

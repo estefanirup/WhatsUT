@@ -9,4 +9,5 @@ public interface AuthInterface extends Remote {
     boolean login(String nome, String senha) throws RemoteException;
     void logout(String nome) throws RemoteException; 
     List<String> listarUsuarios() throws RemoteException;
+    int getUserId(String username) throws RemoteException;
 }

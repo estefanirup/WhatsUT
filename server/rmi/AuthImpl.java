@@ -8,6 +8,7 @@ import utils.CryptoUtil;
 
 public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
     private final Map<String, String> usuarios = new HashMap<>();
+    private final Map<String, Integer> usuarioIds = new HashMap<>();
     private final List<String> logados = new ArrayList<>();
     private final String FILE_PATH = "server/data/usuarios.txt";
     private final String VISIVEIS_PATH = "server/data/usuarios_visiveis.txt";
@@ -40,6 +41,24 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
             }
         } catch (IOException e) {
             System.out.println("Arquivo de usuários não encontrado, criando novo...");
+        }
+
+        File visiveisFile = new File(VISIVEIS_PATH);
+        if (visiveisFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(visiveisFile))) {
+                String linha;
+                while ((linha = reader.readLine()) != null) {
+                    String[] partes = linha.split(";");
+                    if (partes.length >= 2) {
+                        String login = partes[0];
+                        int id = Integer.parseInt(partes[1]);
+                        usuarioIds.put(login, id);
+                    }
+                }
+            } catch (IOException | NumberFormatException e) {
+                System.out.println("Erro ao carregar IDs de usuários visíveis:");
+                e.printStackTrace();
+            }
         }
     }
 
@@ -90,8 +109,12 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
     public synchronized boolean registrar(String nome, String senha) throws RemoteException {
         if (usuarios.containsKey(nome))
             return false;
+
+        int nextId = getNextId();
+
         String senhaHash = CryptoUtil.hash(senha);
         usuarios.put(nome, senhaHash);
+        usuarioIds.put(nome, nextId);
         try {
             salvarUsuario(nome, senhaHash);
             atualizarUsuariosVisiveis(); // Atualiza o arquivo incluindo o usuário com status offline
@@ -116,6 +139,11 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public synchronized int getUserId(String username) throws RemoteException {
+        return usuarioIds.getOrDefault(username, -1);
     }
 
     @Override

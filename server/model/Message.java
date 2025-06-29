@@ -14,7 +14,7 @@ public class Message implements Serializable {
     public Message(int id, int userId, int destinatarioId, String texto) {
         this.id = id;
         this.userId = userId;
-        this.destinatarioId = destinatarioId;
+        this.destinatarioId = destinatarioId; //pode ser id de um grupo
         this.texto = texto;
         this.horario = new Date(); 
         this.lido = false;
@@ -26,4 +26,5 @@ public class Message implements Serializable {
     public Date getHorario() { return horario; }
     public boolean isLido() { return lido; }
     public void setLido(boolean lido) { this.lido = lido; }
+    public void setHorario(Date date) { this.horario = date; }
 }

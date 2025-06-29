@@ -1,7 +1,8 @@
 estefani;1;estefani;default.png;false
-teste;2;teste;default.png;true
-isa;3;isa;default.png;false
-teste3;7;teste3;default.png;false
+teste;2;teste;default.png;false
+isa;3;isa;default.png;true
+teste3;7;teste3;default.png;true
 teste2;4;teste2;default.png;false
 isa2;5;isa2;default.png;false
+testereg;8;testereg;default.png;false
 Oswaldo;6;Oswaldo;default.png;false

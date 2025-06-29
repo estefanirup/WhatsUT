@@ -1,22 +1,24 @@
 package server;
 
-import server.rmi.AuthImpl;
-import server.rmi.AuthInterface;
-import server.rmi.UsuarioImpl;
-import server.rmi.UsuarioInterface;
-
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import server.rmi.AuthImpl;
+import server.rmi.AuthInterface;
+import server.rmi.ChatServiceImpl;
+import server.rmi.UsuarioImpl;
+import server.rmi.UsuarioInterface;
 
 public class ServerApp {
     public static void main(String[] args) {
         try {
             AuthInterface auth = new AuthImpl();
             UsuarioInterface usuario = new UsuarioImpl();
+            ChatServiceImpl mensagem = new ChatServiceImpl();
 
             Registry registry = LocateRegistry.createRegistry(1099);
             registry.rebind("AuthService", auth);
             registry.rebind("UsuarioService", usuario);
+            registry.rebind("ChatService", mensagem);
 
             System.out.println("Servidor RMI pronto...");
         } catch (Exception e) {
