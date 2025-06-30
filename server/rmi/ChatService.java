@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface ChatService extends Remote {
     void sendMessage(Message message) throws RemoteException;
+    void sendFileMessage(Message message) throws RemoteException;
 
     List<Message> getMessages(int userId, int destinatarioId) throws RemoteException;
 
