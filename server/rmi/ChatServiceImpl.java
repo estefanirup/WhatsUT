@@ -39,10 +39,26 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
 
     @Override
     public synchronized void sendMessage(Message message) throws RemoteException {
+        salvarMensagem(message, false);
+    }
+
+    @Override
+    public synchronized void sendGroupMessage(Message message) throws RemoteException {
+        salvarMensagem(message, true);
+    }
+
+    private void salvarMensagem(Message message, boolean isGroup) throws RemoteException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write(String.format("%d;%d;%d;%d;%s", message.getId(), message.getUserId(), message.getDestinatarioId(), message.getHorario().getTime(), message.getTexto().replace("\n", "\\n")));
+            writer.write(String.format("%d;%d;%d;%d;%s;%s",
+                message.getId(),
+                message.getUserId(),
+                message.getDestinatarioId(),
+                message.getHorario().getTime(),
+                message.getTexto().replace("\n", "\\n"),
+                isGroup ? "G" : "U"
+            ));
             writer.newLine();
-            System.out.println("Gravando mensagem: " + message.getTexto());
+            System.out.println("Gravando mensagem " + (isGroup ? "de grupo" : "privada") + ": " + message.getTexto());
         } catch (IOException e) {
             e.printStackTrace();
             throw new RemoteException("Erro ao salvar mensagem.");
@@ -51,6 +67,15 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
 
     @Override
     public synchronized List<Message> getMessages(int userId, int destinatarioId) throws RemoteException {
+        return filtrarMensagens(userId, destinatarioId, false);
+    }
+
+    @Override
+    public synchronized List<Message> getGroupMessages(int grupoId) throws RemoteException {
+        return filtrarMensagens(-1, grupoId, true);
+    }
+
+    private List<Message> filtrarMensagens(int remetenteId, int destinoId, boolean isGroup) {
         List<Message> result = new ArrayList<>();
         File file = new File(FILE_PATH);
         if (!file.exists()) return result;
@@ -58,20 +83,32 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
-                String[] partes = linha.split(";", 5);
-                if (partes.length == 5) {
+                String[] partes = linha.split(";", 6);
+                if (partes.length == 6) {
                     int id = Integer.parseInt(partes[0]);
                     int remetente = Integer.parseInt(partes[1]);
                     int destinatario = Integer.parseInt(partes[2]);
                     long timestamp = Long.parseLong(partes[3]);
                     String texto = partes[4].replace("\\n", "\n");
+                    boolean grupo = "G".equals(partes[5]);
 
-                    // Conversa entre dois usuários (em qualquer direção)
-                    if ((remetente == userId && destinatario == destinatarioId) ||
-                        (remetente == destinatarioId && destinatario == userId)) {
-                        Message message = new Message(id, remetente, destinatario, texto);
-                        message.setHorario(new Date(timestamp));
-                        result.add(message);
+                    if (grupo == isGroup) {
+                        if (!grupo) {
+                            // Conversa privada (duas direções)
+                            if ((remetente == remetenteId && destinatario == destinoId) ||
+                                (remetente == destinoId && destinatario == remetenteId)) {
+                                Message msg = new Message(id, remetente, destinatario, texto);
+                                msg.setHorario(new Date(timestamp));
+                                result.add(msg);
+                            }
+                        } else {
+                            // Mensagens de grupo (destino fixo)
+                            if (destinatario == destinoId) {
+                                Message msg = new Message(id, remetente, destinatario, texto);
+                                msg.setHorario(new Date(timestamp));
+                                result.add(msg);
+                            }
+                        }
                     }
                 }
             }

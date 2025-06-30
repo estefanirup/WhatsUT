@@ -5,8 +5,10 @@ import java.rmi.registry.Registry;
 import server.rmi.AuthImpl;
 import server.rmi.AuthInterface;
 import server.rmi.ChatServiceImpl;
+import server.rmi.GrupoImpl;
 import server.rmi.UsuarioImpl;
 import server.rmi.UsuarioInterface;
+
 
 public class ServerApp {
     public static void main(String[] args) {
@@ -19,6 +21,7 @@ public class ServerApp {
             registry.rebind("AuthService", auth);
             registry.rebind("UsuarioService", usuario);
             registry.rebind("ChatService", mensagem);
+            registry.rebind("GrupoService", new GrupoImpl());
 
             System.out.println("Servidor RMI pronto...");
         } catch (Exception e) {

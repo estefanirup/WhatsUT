@@ -6,7 +6,8 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #000000; /* Fundo geral preto UTFPR */
+  background: #000000;
+  /* Fundo geral preto UTFPR */
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -19,7 +20,8 @@ body {
   height: 90vh;
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(255, 204, 0, 0.1); /* sombra suave */
+  box-shadow: 0 8px 20px rgba(255, 204, 0, 0.1);
+  /* sombra suave */
   display: flex;
   overflow: hidden;
 }
@@ -183,4 +185,86 @@ body {
   .chat-area {
     padding: 15px;
   }
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 8px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  cursor: pointer;
+  background: #f7f7f7;
+  border: none;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.tab:hover {
+  background: #e0e0e0;
+}
+
+.tab.active {
+  background: #000000;
+  color: white;
+  font-weight: 700;
+}
+
+.group-list,
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.group-list li,
+.user-list li {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.group-list li:hover,
+.user-list li:hover {
+  background-color: #d0e4ff;
+}
+
+.group-list li img,
+.user-list li img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.group-list li .group-name,
+.user-list li .user-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.btn-grupo {
+  margin-top: 10px;
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 10px;
+  width: 100%;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-grupo:hover {
+  background-color: #000000;
 }

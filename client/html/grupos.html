@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Criar Grupo - WhatsUT</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="../js/grupos.js" defer></script>
+</head>
+
+<body>
+    <div class="login-container">
+        <img src="../img/utfpr-logo.png" alt="UTFPR" class="logo-img" />
+        <h2>Criar Novo Grupo</h2>
+
+        <input type="text" class="form-control" id="nomeGrupo" placeholder="Nome do grupo" />
+
+        <div class="form-group" style="text-align: left; max-height: 200px; overflow-y: auto; margin-bottom: 15px;">
+            <strong>Selecionar Participantes:</strong>
+            <ul id="listaUsuarios" style="list-style: none; padding-left: 0; margin-top: 10px;"></ul>
+        </div>
+
+        <button class="btn" onclick="criarGrupo()">Criar Grupo</button>
+
+        <p style="margin-top: 10px;">
+            <a href="users.html">Voltar para Conversas</a>
+        </p>
+    </div>
+</body>
+
+</html>
