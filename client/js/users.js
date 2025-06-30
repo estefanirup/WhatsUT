@@ -155,3 +155,48 @@ function voltar() {
 function irParaGrupos() {
   window.location.href = "grupos.html";
 }
+
+function abrirModalPedidos(pedidos, grupo) {
+  const ul = document.getElementById("listaPedidos");
+  ul.innerHTML = "";
+
+  pedidos.forEach(usuario => {
+    const li = document.createElement("li");
+    li.textContent = usuario;
+
+    const btnAprovar = document.createElement("button");
+    btnAprovar.textContent = "Aprovar";
+    btnAprovar.onclick = async () => {
+      await aprovarUsuario(grupo, usuario);
+      alert("Usuário aprovado!");
+      ul.removeChild(li);
+    };
+
+    const btnRejeitar = document.createElement("button");
+    btnRejeitar.textContent = "Rejeitar";
+    btnRejeitar.onclick = async () => {
+      await rejeitarUsuario(grupo, usuario);
+      alert("Usuário rejeitado!");
+      ul.removeChild(li);
+    };
+
+    const btnBanir = document.createElement("button");
+    btnBanir.textContent = "Banir";
+    btnBanir.onclick = async () => {
+      await banirUsuario(grupo, usuario);
+      alert("Usuário banido!");
+      ul.removeChild(li);
+    };
+
+    li.appendChild(btnAprovar);
+    li.appendChild(btnRejeitar);
+    li.appendChild(btnBanir);
+    ul.appendChild(li);
+  });
+
+  document.getElementById("modalPedidos").style.display = "block";
+}
+
+function fecharModalPedidos() {
+  document.getElementById("modalPedidos").style.display = "none";
+}
