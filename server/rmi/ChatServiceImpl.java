@@ -22,15 +22,19 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String linha;
                 while ((linha = reader.readLine()) != null) {
-                    String[] partes = linha.split(";");
+                    String[] partes = linha.split(";", -1); // Usar -1 para garantir partes vazias
                     if (partes.length >= 1) {
-                        int id = Integer.parseInt(partes[0]);
-                        if (id > maxId) {
-                            maxId = id;
+                        try {
+                            int id = Integer.parseInt(partes[0]);
+                            if (id > maxId) {
+                                maxId = id;
+                            }
+                        } catch (NumberFormatException e) {
+                            // Ignorar linhas mal formatadas, ou logar para depuração
                         }
                     }
                 }
-            } catch (IOException | NumberFormatException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -47,18 +51,41 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
         salvarMensagem(message, true);
     }
 
+    @Override
+    public synchronized void sendFileMessage(Message message) throws RemoteException {
+        salvarMensagem(message, false); // Para conversas privadas
+        // Se for possível enviar arquivo em grupo, adicione uma lógica similar com um flag diferente
+    }
+
     private void salvarMensagem(Message message, boolean isGroup) throws RemoteException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write(String.format("%d;%d;%d;%d;%s;%s",
+            // Novo formato: id;userId;destinatarioId;horario;texto;tipo;fileName;fileMimeType;fileContentBase64
+            // O tipo pode ser "U" para mensagem de usuário, "G" para grupo, "F" para arquivo.
+            // Para simplicidade, vamos usar "UM" para UserMessage e "FM" para FileMessage.
+
+            String tipoMensagem;
+            if (message.getFileContentBase64() != null && !message.getFileContentBase64().isEmpty()) {
+                tipoMensagem = "FM"; // File Message
+            } else if (isGroup) {
+                tipoMensagem = "G"; // Group Message
+            } else {
+                tipoMensagem = "U"; // User Message
+            }
+
+            String linha = String.format("%d;%d;%d;%d;%s;%s;%s;%s;%s",
                 message.getId(),
                 message.getUserId(),
                 message.getDestinatarioId(),
                 message.getHorario().getTime(),
-                message.getTexto().replace("\n", "\\n"),
-                isGroup ? "G" : "U"
-            ));
+                message.getTexto().replace("\n", "\\n"), // Escapa quebras de linha
+                tipoMensagem,
+                message.getFileName() != null ? message.getFileName() : "", // Garante que não é nulo
+                message.getFileMimeType() != null ? message.getFileMimeType() : "", // Garante que não é nulo
+                message.getFileContentBase64() != null ? message.getFileContentBase64() : "" // Garante que não é nulo
+            );
+            writer.write(linha);
             writer.newLine();
-            System.out.println("Gravando mensagem " + (isGroup ? "de grupo" : "privada") + ": " + message.getTexto());
+            System.out.println("Gravando mensagem " + tipoMensagem + ": " + message.getTexto() + (message.getFileName() != null ? " (Arquivo: " + message.getFileName() + ")" : ""));
         } catch (IOException e) {
             e.printStackTrace();
             throw new RemoteException("Erro ao salvar mensagem.");
@@ -75,7 +102,7 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
         return filtrarMensagens(-1, grupoId, true);
     }
 
-    private List<Message> filtrarMensagens(int remetenteId, int destinoId, boolean isGroup) {
+    private List<Message> filtrarMensagens(int remetenteId, int destinoId, boolean isGroupFilter) {
         List<Message> result = new ArrayList<>();
         File file = new File(FILE_PATH);
         if (!file.exists()) return result;
@@ -83,36 +110,58 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String linha;
             while ((linha = reader.readLine()) != null) {
-                String[] partes = linha.split(";", 6);
-                if (partes.length == 6) {
-                    int id = Integer.parseInt(partes[0]);
-                    int remetente = Integer.parseInt(partes[1]);
-                    int destinatario = Integer.parseInt(partes[2]);
-                    long timestamp = Long.parseLong(partes[3]);
-                    String texto = partes[4].replace("\\n", "\n");
-                    boolean grupo = "G".equals(partes[5]);
+                String[] partes = linha.split(";", -1); // Usar -1 para garantir partes vazias
+                if (partes.length >= 6) { // Mínimo de campos para mensagem de texto ou arquivo
+                    try {
+                        int id = Integer.parseInt(partes[0]);
+                        int remetente = Integer.parseInt(partes[1]);
+                        int destinatario = Integer.parseInt(partes[2]);
+                        long timestamp = Long.parseLong(partes[3]);
+                        String texto = partes[4].replace("\\n", "\n");
+                        String tipoMensagem = partes[5]; // "U", "G", "FM"
 
-                    if (grupo == isGroup) {
-                        if (!grupo) {
-                            // Conversa privada (duas direções)
-                            if ((remetente == remetenteId && destinatario == destinoId) ||
-                                (remetente == destinoId && destinatario == remetenteId)) {
+                        String fileName = (partes.length > 6 && !partes[6].isEmpty()) ? partes[6] : null;
+                        String fileMimeType = (partes.length > 7 && !partes[7].isEmpty()) ? partes[7] : null;
+                        String fileContentBase64 = (partes.length > 8 && !partes[8].isEmpty()) ? partes[8] : null;
+
+                        boolean isFileMessage = "FM".equals(tipoMensagem);
+                        boolean isGroupMessage = "G".equals(tipoMensagem);
+                        boolean isTextMessage = "U".equals(tipoMensagem);
+
+                        // Lógica de filtragem
+                        if (isGroupFilter) { // Filtrando por grupo
+                            if (isGroupMessage && destinatario == destinoId) {
                                 Message msg = new Message(id, remetente, destinatario, texto);
                                 msg.setHorario(new Date(timestamp));
                                 result.add(msg);
                             }
-                        } else {
-                            // Mensagens de grupo (destino fixo)
-                            if (destinatario == destinoId) {
-                                Message msg = new Message(id, remetente, destinatario, texto);
-                                msg.setHorario(new Date(timestamp));
-                                result.add(msg);
+                            // Se for para permitir arquivos em grupo, adicione aqui:
+                            // else if (isFileMessage && destinatario == destinoId && isGroupMessageForFile) {
+                            //    Message msg = new Message(id, remetente, destinatario, texto, fileName, fileMimeType, fileContentBase64);
+                            //    msg.setHorario(new Date(timestamp));
+                            //    result.add(msg);
+                            // }
+                        } else { // Filtrando por conversa privada (entre dois usuários)
+                            if (isFileMessage || isTextMessage) { // Considera mensagens de texto e arquivo
+                                if ((remetente == remetenteId && destinatario == destinoId) ||
+                                    (remetente == destinoId && destinatario == remetenteId)) {
+                                    Message msg;
+                                    if (isFileMessage) {
+                                        msg = new Message(id, remetente, destinatario, texto, fileName, fileMimeType, fileContentBase64);
+                                    } else { // isTextMessage
+                                        msg = new Message(id, remetente, destinatario, texto);
+                                    }
+                                    msg.setHorario(new Date(timestamp));
+                                    result.add(msg);
+                                }
                             }
                         }
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace(); // Logar erro na linha
                     }
                 }
             }
-        } catch (IOException | NumberFormatException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

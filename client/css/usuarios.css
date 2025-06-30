@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background: #000000;
   /* Fundo geral preto UTFPR */
   height: 100vh;
@@ -200,7 +200,7 @@ body {
   background: #f7f7f7;
   border: none;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   transition: background-color 0.3s ease;
 }
 
@@ -267,4 +267,46 @@ body {
 
 .btn-grupo:hover {
   background-color: #000000;
+}
+
+/* Exemplo de estilo para o botão de anexo */
+.file-input-label {
+  cursor: pointer;
+  padding: 10px 14px;
+  background-color: #ffcc00; /* Amarelo UTFPR */
+  color: #000000;
+  border-radius: 8px;
+  font-weight: bold;
+  margin-left: 10px;
+  transition: background 0.3s;
+}
+
+.file-input-label:hover {
+  background-color: #e6b800;
+}
+
+/* Estilo para imagens enviadas */
+.message-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 5px;
+  display: block; /* Para evitar espaço extra abaixo da imagem */
+}
+
+/* Estilo para links de download de arquivo */
+.message-file-link {
+  display: inline-block;
+  background-color: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #333;
+  margin-top: 5px;
+  font-size: 0.9em;
+  border: 1px solid #ddd;
+}
+
+.message-file-link:hover {
+  background-color: #e0e0e0;
 }

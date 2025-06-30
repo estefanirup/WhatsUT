@@ -1,82 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <script defer src="../js/users.js"></script>
+    <script defer src="../js/groupActions.js"></script>
+    <title>WhatsUT - Conversas</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/usuarios.css" />
+    <style>
+      #modalPedidos {
+        display: none;
+        position: fixed;
+        top: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        z-index: 1000;
+        width: 400px;
+        max-height: 60vh;
+        overflow-y: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <script defer src="../js/users.js"></script>
-  <script defer src="../js/groupActions.js"></script>
-  <title>WhatsUT - Conversas</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/usuarios.css" />
-  <style>
-    #modalPedidos {
-      display: none;
-      position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border: 1px solid #ccc;
-      padding: 20px;
-      z-index: 1000;
-      width: 400px;
-      max-height: 60vh;
-      overflow-y: auto;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
+      #modalPedidos h3 {
+        margin-bottom: 10px;
+      }
 
-    #modalPedidos h3 {
-      margin-bottom: 10px;
-    }
+      #modalPedidos ul li {
+        margin-bottom: 10px;
+      }
 
-    #modalPedidos ul li {
-      margin-bottom: 10px;
-    }
+      #modalPedidos button {
+        margin-left: 5px;
+      }
 
-    #modalPedidos button {
-      margin-left: 5px;
-    }
+      #modalPedidos .fechar {
+        background: #f44336;
+        color: white;
+        padding: 5px 10px;
+        margin-top: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
 
-    #modalPedidos .fechar {
-      background: #f44336;
-      color: white;
-      padding: 5px 10px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+      #modalPedidos .fechar:hover {
+        background: #c62828;
+      }
+    </style>
+  </head>
 
-    #modalPedidos .fechar:hover {
-      background: #c62828;
-    }
-  </style>
-</head>
+  <body>
+    <div class="chat-container">
+      <div class="sidebar">
+        <h2>Usuários</h2>
+        <ul class="user-list" id="userList"></ul>
 
-<body>
-  <div class="chat-container">
-    <div class="sidebar">
-      <h2>Usuários</h2>
-      <ul class="user-list" id="userList"></ul>
+        <h2>Grupos</h2>
+        <ul class="group-list" id="groupList"></ul>
 
-      <h2>Grupos</h2>
-      <ul class="group-list" id="groupList"></ul>
-
-      <button class="btn-voltar" onclick="voltar()">Voltar</button>
-      <button class="btn-grupo" onclick="irParaGrupos()">Criar Grupo</button>
+        <button class="btn-voltar" onclick="voltar()">Voltar</button>
+        <button class="btn-grupo" onclick="irParaGrupos()">Criar Grupo</button>
+      </div>
+      <div class="chat-area" id="areaChat">
+        <div class="chat-placeholder">
+          Selecione um usuário ou grupo para iniciar a conversa.
+        </div>
+      </div>
     </div>
-    <div class="chat-area" id="areaChat">
-      <div class="chat-placeholder">Selecione um usuário ou grupo para iniciar a conversa.</div>
+    <template id="chat-template">
+      <div class="chat-header"></div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input">
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Digite uma mensagem..."
+        />
+        <label for="fileInput" class="file-input-label">&#128206;</label>
+        <input type="file" id="fileInput" style="display: none" />
+        <button id="sendButton">Enviar</button>
+      </div>
+    </template>
+
+    <!-- Modal de Pedidos -->
+    <div id="modalPedidos">
+      <h3>Pedidos Pendentes</h3>
+      <ul id="listaPedidos"></ul>
+      <button class="fechar" onclick="fecharModalPedidos()">Fechar</button>
     </div>
-  </div>
-
-  <!-- Modal de Pedidos -->
-  <div id="modalPedidos">
-    <h3>Pedidos Pendentes</h3>
-    <ul id="listaPedidos"></ul>
-    <button class="fechar" onclick="fecharModalPedidos()">Fechar</button>
-  </div>
-</body>
-
+  </body>
 </html>

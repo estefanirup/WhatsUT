@@ -13,7 +13,8 @@ public class AuthImpl extends UnicastRemoteObject implements AuthInterface {
     private final String FILE_PATH = "server/data/usuarios.txt";
     private final String VISIVEIS_PATH = "server/data/usuarios_visiveis.txt";
     private final String IMAGEM_PADRAO = "default.png";
-
+    private AdminImpl adminService;
+    
     public AuthImpl() throws RemoteException {
         super();
         carregarUsuarios();

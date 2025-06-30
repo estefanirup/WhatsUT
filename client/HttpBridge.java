@@ -241,7 +241,29 @@ public class HttpBridge {
                 return gson.toJson(new SendMessageResponse(false, -1));
             }
         });
-
+        post("/api/messages/send/file", (req, res) -> {
+            res.type("application/json");
+            try {
+                 SendFileMessageRequest data = gson.fromJson(req.body(), SendFileMessageRequest.class);
+                    if (chatHolder[0] != null) {
+                        Message message = new Message(
+                          chatHolder[0].getNextMessageId(),
+                            data.remetenteId,
+                            data.destinatarioId,
+                            data.texto,
+                            data.fileName,
+                            data.fileMimeType,
+                            data.fileContentBase64);
+                        chatHolder[0].sendFileMessage(message); // Chamada para o novo método RMI
+                        return gson.toJson(new SendMessageResponse(true, message.getId()));
+                    } else {
+                        return gson.toJson(new SendMessageResponse(false, -1));
+                    }
+                } catch (Exception e) {
+                 e.printStackTrace();
+                return gson.toJson(new SendMessageResponse(false, -1));
+                }
+        });
         // Entrar no grupo (enviar pedido para entrar)
         post("/api/grupos/entrar", (req, res) -> {
             res.type("application/json");
@@ -541,6 +563,14 @@ public class HttpBridge {
         int destinatarioId;
         String texto;
     }
+    static class SendFileMessageRequest {
+    int remetenteId;
+    int destinatarioId;
+    String texto; // Legenda para o arquivo
+    String fileName;
+    String fileMimeType;
+    String fileContentBase64;
+}
 
     static class SendMessageResponse {
         boolean success;
