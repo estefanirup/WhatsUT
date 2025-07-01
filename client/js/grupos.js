@@ -57,13 +57,16 @@ async function criarGrupo() {
         return;
     }
 
-    // Inclui o criador do grupo na lista de participantes
+    // Include the creator in the members list
     selecionados.push(loggedUserId);
 
     const payload = {
-        nomeGrupo: nomeGrupo,
-        criador: loggedUserId,
-        participantes: selecionados
+        // Remove the ID generation from frontend - let backend handle it
+        idAdmin: loggedUserId,
+        nome: nomeGrupo,
+        descricao: "Novo grupo criado", // Add a default description
+        criador: loggedUserId.toString(),
+        membros: selecionados
     };
 
     try {
@@ -74,11 +77,11 @@ async function criarGrupo() {
         });
 
         const data = await resp.json();
-        if (data.sucesso) {
+        if (data.success) {
             alert("Grupo criado com sucesso!");
             window.location.href = "users.html";
         } else {
-            alert("Erro ao criar grupo.");
+            alert("Erro ao criar grupo: " + (data.error || ""));
         }
     } catch (e) {
         alert("Erro ao criar grupo.");

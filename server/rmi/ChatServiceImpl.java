@@ -49,6 +49,7 @@ public class ChatServiceImpl extends UnicastRemoteObject implements ChatService 
 
     private void salvarMensagem(Message message, boolean isGroup) throws RemoteException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            //writer.newLine();
             writer.write(String.format("%d;%d;%d;%d;%s;%s",
                 message.getId(),
                 message.getUserId(),

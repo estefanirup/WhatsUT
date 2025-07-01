@@ -6,6 +6,7 @@ import java.util.List;
 import server.model.Message;
 
 public interface ChatGrupoInterface extends Remote {
-    void enviarMensagemGrupo(String grupo, Message msg) throws RemoteException;
-    List<Message> listarMensagensGrupo(String grupo) throws RemoteException;
+    void enviarMensagemGrupo(int grupoId, Message msg) throws RemoteException;
+    List<Message> listarMensagensGrupo(int grupoId) throws RemoteException;
+    int getNextMessageId() throws RemoteException;
 }

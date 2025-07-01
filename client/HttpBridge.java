@@ -6,36 +6,31 @@ import com.google.gson.Gson;
 import server.rmi.AuthInterface;
 import server.rmi.UsuarioInterface;
 import server.rmi.ChatService;
+import server.rmi.ChatGrupoInterface;
 import server.rmi.GrupoInterface;
 import server.model.UsuarioPublico;
 import server.model.Message;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Map;
-import com.google.gson.reflect.TypeToken;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Date;
+import server.model.Grupo;
 
 public class HttpBridge {
 
-    private static final String URL_BASE = "http://localhost:4567"; // Base URL se for preciso usar no cliente HTTP
-    private static final HttpClient client = HttpClient.newHttpClient();
-    private static final Gson gson = new Gson();
-
     public static void main(String[] args) {
         port(4567);
+        Gson gson = new Gson();
 
         final AuthInterface[] authHolder = new AuthInterface[1];
         final UsuarioInterface[] usuarioHolder = new UsuarioInterface[1];
         final ChatService[] chatHolder = new ChatService[1];
+        final ChatGrupoInterface[] chatGrupoHolder = new ChatGrupoInterface[1];
         final GrupoInterface[] grupoHolder = new GrupoInterface[1];
 
         try {
@@ -43,6 +38,7 @@ public class HttpBridge {
             authHolder[0] = (AuthInterface) registry.lookup("AuthService");
             usuarioHolder[0] = (UsuarioInterface) registry.lookup("UsuarioService");
             chatHolder[0] = (ChatService) registry.lookup("ChatService");
+            chatGrupoHolder[0] = (ChatGrupoInterface) registry.lookup("ChatGrupoService");
             grupoHolder[0] = (GrupoInterface) registry.lookup("GrupoService");
             System.out.println("Conectado ao servidor RMI.");
         } catch (Exception e) {
@@ -72,7 +68,7 @@ public class HttpBridge {
         });
 
         // Teste simples
-        get("/teste", (req, res) -> "Servidor HTTP do WhatsUT rodando!");
+        get("/teste", (req, res) -> "Servidor HTTP do WhatsUT rodando! 🚀");
 
         // Login
         post("/login", (req, res) -> {
@@ -143,7 +139,8 @@ public class HttpBridge {
                             chatHolder[0].getNextMessageId(),
                             data.remetenteId,
                             data.destinatarioId,
-                            data.texto);
+                            data.texto
+                    );
                     chatHolder[0].sendMessage(message);
                     return gson.toJson(new SendMessageResponse(true, message.getId()));
                 } else {
@@ -171,347 +168,129 @@ public class HttpBridge {
             }
         });
 
-        // Grupo: listar grupos
-        get("/api/grupos", (req, res) -> {
-            res.type("application/json");
-            if (grupoHolder[0] != null) {
-                try {
-                    return gson.toJson(grupoHolder[0].listarGrupos());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return gson.toJson(Collections.emptyList());
-                }
-            } else {
-                return gson.toJson(Collections.emptyList());
-            }
-        });
-
-        // Grupo: criar grupo (POST)
+        //GRUPO 
         post("/api/grupos", (req, res) -> {
             res.type("application/json");
             try {
-                CriarGrupoRequest data = gson.fromJson(req.body(), CriarGrupoRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean sucesso = grupoHolder[0].criarGrupo(data.nomeGrupo, data.criador);
-                    return gson.toJson(new CriarGrupoResponse(sucesso));
-                } else {
-                    return gson.toJson(new CriarGrupoResponse(false));
-                }
+                CreateGroupRequest data = gson.fromJson(req.body(), CreateGroupRequest.class);
+                boolean success = grupoHolder[0] != null && grupoHolder[0].criarGrupo(
+                        data.id,
+                        data.idAdmin,
+                        data.nome,
+                        data.descricao,
+                        data.criador,
+                        data.membros
+                );
+                return gson.toJson(new BasicResponse(success));
             } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new CriarGrupoResponse(false));
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
             }
         });
 
-        // Listar mensagens de um grupo
-        get("/api/messages/grupo/:grupoId", (req, res) -> {
-            res.type("application/json");
-            try {
-                int grupoId = Integer.parseInt(req.params("grupoId"));
-                if (chatHolder[0] != null) {
-                    List<Message> mensagens = chatHolder[0].getGroupMessages(grupoId);
-                    return gson.toJson(mensagens);
-                } else {
-                    return gson.toJson(Collections.emptyList());
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(Collections.emptyList());
-            }
-        });
+        get("/api/grupos", (req, res) -> {
+        res.type("application/json");
+        try {
+            List<Grupo> grupos = grupoHolder[0] != null 
+                    ? grupoHolder[0].listarGruposComDetalhes() 
+                    : Collections.emptyList();
+            return gson.toJson(grupos);
+        } catch (Exception e) {
+            return gson.toJson(Collections.emptyList());
+        }
+    });
 
-        // Enviar mensagem para grupo
-        post("/api/messages/grupo/send", (req, res) -> {
-            res.type("application/json");
-            try {
-                SendGroupMessageRequest data = gson.fromJson(req.body(), SendGroupMessageRequest.class);
-                if (chatHolder[0] != null) {
-                    Message mensagem = new Message(
-                            chatHolder[0].getNextMessageId(),
-                            data.remetenteId,
-                            data.grupoId,
-                            data.texto);
-                    chatHolder[0].sendGroupMessage(mensagem);
-                    return gson.toJson(new SendMessageResponse(true, mensagem.getId()));
-                } else {
-                    return gson.toJson(new SendMessageResponse(false, -1));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SendMessageResponse(false, -1));
-            }
-        });
-
-        // Entrar no grupo (enviar pedido para entrar)
         post("/api/grupos/entrar", (req, res) -> {
             res.type("application/json");
             try {
-                EntrarGrupoRequest data = gson.fromJson(req.body(), EntrarGrupoRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean sucesso = grupoHolder[0].entrarNoGrupo(data.nomeGrupo, data.usuario);
-                    return gson.toJson(new SimpleResponse(sucesso));
-                }
-                return gson.toJson(new SimpleResponse(false));
+                JoinGroupRequest data = gson.fromJson(req.body(), JoinGroupRequest.class);
+                boolean success = grupoHolder[0] != null
+                        && grupoHolder[0].entrarNoGrupo(data.grupoId, data.usuarioId);
+                return gson.toJson(new BasicResponse(success));
             } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SimpleResponse(false));
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
             }
         });
 
-        // Listar membros de um grupo
-        get("/api/grupos/:nomeGrupo/membros", (req, res) -> {
+        // List group members endpoint
+        get("/api/grupos/:id/membros", (req, res) -> {
             res.type("application/json");
             try {
-                String nomeGrupo = req.params("nomeGrupo");
-                if (grupoHolder[0] != null) {
-                    List<String> membros = grupoHolder[0].listarMembros(nomeGrupo);
-                    return gson.toJson(membros);
-                }
-                return gson.toJson(Collections.emptyList());
+                int grupoId = Integer.parseInt(req.params("id"));
+                List<Integer> membros = grupoHolder[0] != null
+                        ? grupoHolder[0].listarMembros(grupoId) : Collections.emptyList();
+                return gson.toJson(membros);
             } catch (Exception e) {
-                e.printStackTrace();
                 return gson.toJson(Collections.emptyList());
             }
         });
 
-        // Sair do grupo
-        post("/api/grupos/sair", (req, res) -> {
+        get("/api/grupos/:id/pedidos", (req, res) -> {
             res.type("application/json");
             try {
-                SairGrupoRequest data = gson.fromJson(req.body(), SairGrupoRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean sucesso = grupoHolder[0].sairDoGrupo(data.nomeGrupo, data.usuario);
-                    return gson.toJson(new SimpleResponse(sucesso));
-                }
-                return gson.toJson(new SimpleResponse(false));
+                int grupoId = Integer.parseInt(req.params("id"));
+                int adminId = Integer.parseInt(req.queryParams("adminId"));
+                Set<Integer> pedidos = grupoHolder[0] != null
+                        ? grupoHolder[0].listarPedidosPendentes(grupoId, adminId) : Collections.emptySet();
+                return gson.toJson(pedidos);
             } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SimpleResponse(false));
+                return gson.toJson(Collections.emptySet());
             }
         });
 
-        // Verificar se é admin
-        post("/api/grupos/ehAdmin", (req, res) -> {
-            res.type("application/json");
-            try {
-                EhAdminRequest data = gson.fromJson(req.body(), EhAdminRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean ehAdmin = grupoHolder[0].ehAdmin(data.nomeGrupo, data.usuario);
-                    return gson.toJson(new SimpleResponse(ehAdmin));
-                }
-                return gson.toJson(new SimpleResponse(false));
-            } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SimpleResponse(false));
-            }
-        });
-
-        // Banir usuário
-        post("/api/grupos/banir", (req, res) -> {
-            res.type("application/json");
-            try {
-                BanirUsuarioRequest data = gson.fromJson(req.body(), BanirUsuarioRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean sucesso = grupoHolder[0].banirUsuario(data.nomeGrupo, data.admin, data.usuarioParaBanir);
-                    return gson.toJson(new SimpleResponse(sucesso));
-                }
-                return gson.toJson(new SimpleResponse(false));
-            } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SimpleResponse(false));
-            }
-        });
-
-        // Listar pedidos pendentes (admin)
-        post("/api/grupos/pedidos", (req, res) -> {
-            res.type("application/json");
-            try {
-                PedidosPendentesRequest data = gson.fromJson(req.body(), PedidosPendentesRequest.class);
-                if (grupoHolder[0] != null) {
-                    // Retorna Set<String>, converte para lista para JSON
-                    List<String> pedidos = new ArrayList<>(
-                            grupoHolder[0].listarPedidosPendentes(data.nomeGrupo, data.admin));
-                    return gson.toJson(pedidos);
-                }
-                return gson.toJson(Collections.emptyList());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(Collections.emptyList());
-            }
-        });
-
-        // Aprovar pedido de entrada (admin)
         post("/api/grupos/aprovar", (req, res) -> {
             res.type("application/json");
             try {
-                AprovarEntradaRequest data = gson.fromJson(req.body(), AprovarEntradaRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean sucesso = grupoHolder[0].aprovarEntrada(data.nomeGrupo, data.admin, data.usuario);
-                    return gson.toJson(new SimpleResponse(sucesso));
-                }
-                return gson.toJson(new SimpleResponse(false));
+                ApproveRequest data = gson.fromJson(req.body(), ApproveRequest.class);
+                boolean success = grupoHolder[0] != null
+                        && grupoHolder[0].aprovarEntrada(data.grupoId, data.adminId, data.usuarioId);
+                return gson.toJson(new BasicResponse(success));
             } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SimpleResponse(false));
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
             }
         });
 
-        // Rejeitar pedido de entrada (admin)
-        post("/api/grupos/rejeitar", (req, res) -> {
+        // Group message endpoints
+        post("/api/grupos/mensagens/enviar", (req, res) -> {
             res.type("application/json");
             try {
-                RejeitarEntradaRequest data = gson.fromJson(req.body(), RejeitarEntradaRequest.class);
-                if (grupoHolder[0] != null) {
-                    boolean sucesso = grupoHolder[0].rejeitarEntrada(data.nomeGrupo, data.admin, data.usuario);
-                    return gson.toJson(new SimpleResponse(sucesso));
+                SendGroupMessageRequest data = gson.fromJson(req.body(), SendGroupMessageRequest.class);
+                if (chatGrupoHolder[0] != null) {
+                    Message message = new Message(
+                            chatGrupoHolder[0].getNextMessageId(),
+                            data.remetenteId,
+                            data.grupoId,
+                            data.texto
+                    );
+                    chatGrupoHolder[0].enviarMensagemGrupo(data.grupoId, message);
+                    return gson.toJson(new BasicResponse(true));
                 }
-                return gson.toJson(new SimpleResponse(false));
+                return gson.toJson(new BasicResponse(false));
             } catch (Exception e) {
-                e.printStackTrace();
-                return gson.toJson(new SimpleResponse(false));
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
             }
         });
 
-    }
-
-    // Métodos cliente HTTP para grupos (se quiser usar fora do Spark, ex: no front
-    // Java)
-    public static List<String> listarGrupos() throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos"))
-                .GET()
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return gson.fromJson(response.body(), new TypeToken<List<String>>() {
-        }.getType());
-    }
-
-    public static boolean criarGrupo(String nomeGrupo, String criador) throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "criador", criador));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        CriarGrupoResponse resp = gson.fromJson(response.body(), CriarGrupoResponse.class);
-        return resp.sucesso;
-    }
-
-    public static boolean entrarNoGrupo(String nomeGrupo, String usuario) throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "usuario", usuario));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/entrar"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        SimpleResponse resp = gson.fromJson(response.body(), SimpleResponse.class);
-        return resp.sucesso;
-    }
-
-    public static List<String> listarMembros(String nomeGrupo) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/" + nomeGrupo + "/membros"))
-                .GET()
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return gson.fromJson(response.body(), new TypeToken<List<String>>() {
-        }.getType());
-    }
-
-    public static boolean sairDoGrupo(String nomeGrupo, String usuario) throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "usuario", usuario));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/sair"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        SimpleResponse resp = gson.fromJson(response.body(), SimpleResponse.class);
-        return resp.sucesso;
-    }
-
-    public static boolean ehAdmin(String nomeGrupo, String usuario) throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "usuario", usuario));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/ehAdmin"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        SimpleResponse resp = gson.fromJson(response.body(), SimpleResponse.class);
-        return resp.sucesso;
-    }
-
-    public static boolean banirUsuario(String nomeGrupo, String admin, String usuarioParaBanir)
-            throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "admin", admin, "usuarioParaBanir", usuarioParaBanir));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/banir"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        SimpleResponse resp = gson.fromJson(response.body(), SimpleResponse.class);
-        return resp.sucesso;
-    }
-
-    public static List<String> listarPedidosPendentes(String nomeGrupo, String admin)
-            throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "admin", admin));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/pedidos"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return gson.fromJson(response.body(), new TypeToken<List<String>>() {
-        }.getType());
-    }
-
-    public static boolean aprovarEntrada(String nomeGrupo, String admin, String usuario)
-            throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "admin", admin, "usuario", usuario));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/aprovar"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        SimpleResponse resp = gson.fromJson(response.body(), SimpleResponse.class);
-        return resp.sucesso;
-    }
-
-    public static boolean rejeitarEntrada(String nomeGrupo, String admin, String usuario)
-            throws IOException, InterruptedException {
-        String json = gson.toJson(Map.of("nomeGrupo", nomeGrupo, "admin", admin, "usuario", usuario));
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(URL_BASE + "/api/grupos/rejeitar"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        SimpleResponse resp = gson.fromJson(response.body(), SimpleResponse.class);
-        return resp.sucesso;
+        get("/api/grupos/mensagens/:grupoId", (req, res) -> {
+            res.type("application/json");
+            try {
+                int grupoId = Integer.parseInt(req.params("grupoId"));
+                List<Message> messages = chatGrupoHolder[0] != null
+                        ? chatGrupoHolder[0].listarMensagensGrupo(grupoId) : Collections.emptyList();
+                return gson.toJson(messages);
+            } catch (Exception e) {
+                return gson.toJson(Collections.emptyList());
+            }
+        });
     }
 
     static class LoginRequest {
+
         String usuario;
         String senha;
     }
 
     static class LoginResponse {
+
         boolean sucesso;
         int userId;
 
@@ -522,11 +301,13 @@ public class HttpBridge {
     }
 
     public static class RegisterRequest {
+
         String usuario;
         String senha;
     }
 
     public static class RegisterResponse {
+
         boolean sucesso;
         String erro;
 
@@ -537,12 +318,14 @@ public class HttpBridge {
     }
 
     static class SendMessageRequest {
+
         int remetenteId;
         int destinatarioId;
         String texto;
     }
 
     static class SendMessageResponse {
+
         boolean success;
         int messageId;
 
@@ -552,69 +335,48 @@ public class HttpBridge {
         }
     }
 
+    static class CreateGroupRequest {
+
+        int id;
+        int idAdmin;
+        String nome;
+        String descricao;
+        String criador;
+        List<Integer> membros;
+    }
+
+    static class JoinGroupRequest {
+
+        int grupoId;
+        int usuarioId;
+    }
+
+    static class ApproveRequest {
+
+        int grupoId;
+        int adminId;
+        int usuarioId;
+    }
+
     static class SendGroupMessageRequest {
+
         int remetenteId;
         int grupoId;
         String texto;
     }
 
-    static class CriarGrupoRequest {
-        String nomeGrupo;
-        String criador;
-    }
+    static class BasicResponse {
 
-    static class CriarGrupoResponse {
-        boolean sucesso;
+        boolean success;
+        String error;
 
-        public CriarGrupoResponse(boolean sucesso) {
-            this.sucesso = sucesso;
+        BasicResponse(boolean s) {
+            success = s;
+        }
+
+        BasicResponse(boolean s, String e) {
+            success = s;
+            error = e;
         }
     }
-
-    static class EntrarGrupoRequest {
-        String nomeGrupo;
-        String usuario;
-    }
-
-    static class SairGrupoRequest {
-        String nomeGrupo;
-        String usuario;
-    }
-
-    static class EhAdminRequest {
-        String nomeGrupo;
-        String usuario;
-    }
-
-    static class BanirUsuarioRequest {
-        String nomeGrupo;
-        String admin;
-        String usuarioParaBanir;
-    }
-
-    static class PedidosPendentesRequest {
-        String nomeGrupo;
-        String admin;
-    }
-
-    static class AprovarEntradaRequest {
-        String nomeGrupo;
-        String admin;
-        String usuario;
-    }
-
-    static class RejeitarEntradaRequest {
-        String nomeGrupo;
-        String admin;
-        String usuario;
-    }
-
-    static class SimpleResponse {
-        boolean sucesso;
-
-        SimpleResponse(boolean sucesso) {
-            this.sucesso = sucesso;
-        }
-    }
-
 }

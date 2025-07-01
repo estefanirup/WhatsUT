@@ -1,48 +1,45 @@
 package server.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Grupo implements Serializable {
+    private int id;
+    private int idAdmin;
     private String nome;
     private String descricao;
     private String criador;
-    private List<String> membros;
+    private List<Integer> membros;
 
-    public Grupo(String nome, String descricao, String criador, List<String> membros) {
+    public Grupo(int id, int idAdmin, String nome, String descricao, String criador, List<Integer> membros) {
+        this.id = id;
+        this.idAdmin = idAdmin;
         this.nome = nome;
         this.descricao = descricao;
         this.criador = criador;
-        this.membros = membros;
+        this.membros = new ArrayList<>(membros); // Create new list to avoid external modification
     }
 
-    public String getNome() {
-        return nome;
-    }
+    public int getId() { return id; }
+    public int getIdAdmin() { return idAdmin; }
+    public void setIdAdmin(int newIdAdmin) { this.idAdmin = newIdAdmin; }
+    public String getNome() { return nome; }
+    public String getDescricao() { return descricao; }
+    public String getCriador() { return criador; }
+    public List<Integer> getMembros() { return new ArrayList<>(membros); } // Return copy for safety
 
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public String getCriador() {
-        return criador;
-    }
-
-    public List<String> getMembros() {
-        return membros;
-    }
-
-    public void adicionarMembro(String login) {
-        if (!membros.contains(login)) {
-            membros.add(login);
+    public void adicionarMembro(int userId) {
+        if (!membros.contains(userId)) {
+            membros.add(userId);
         }
     }
 
-    public void removerMembro(String login) {
-        membros.remove(login);
+    public void removerMembro(int userId) {
+        membros.remove(Integer.valueOf(userId));
     }
 
-    public boolean isMembro(String login) {
-        return membros.contains(login);
+    public boolean isMembro(int userId) {
+        return membros.contains(userId);
     }
 }

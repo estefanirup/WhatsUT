@@ -27,4 +27,5 @@ public class Message implements Serializable {
     public boolean isLido() { return lido; }
     public void setLido(boolean lido) { this.lido = lido; }
     public void setHorario(Date date) { this.horario = date; }
+    public void setDestinatarioId(int newDestinatarioId) {this.destinatarioId = newDestinatarioId; }
 }

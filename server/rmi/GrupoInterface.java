@@ -4,18 +4,24 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Set;
+import server.model.Grupo;
 
 public interface GrupoInterface extends Remote {
-    boolean criarGrupo(String nomeGrupo, String criador) throws RemoteException;
-    List<String> listarGrupos() throws RemoteException;
-    boolean entrarNoGrupo(String nomeGrupo, String usuario) throws RemoteException;
-    List<String> listarMembros(String nomeGrupo) throws RemoteException;
-    boolean sairDoGrupo(String nomeGrupo, String usuario) throws RemoteException;
-    boolean ehAdmin(String nomeGrupo, String usuario) throws RemoteException;
-    boolean banirUsuario(String nomeGrupo, String admin, String usuarioParaBanir) throws RemoteException;
+    boolean criarGrupo(int id, int idAdmin, String nome, String descricao, String criador, List<Integer> membros) throws RemoteException;
+    List<Integer> listarGrupos() throws RemoteException;
+    public List<Grupo> listarGruposComDetalhes() throws RemoteException;
+    boolean entrarNoGrupo(int grupoId, int usuarioId) throws RemoteException;
+    List<Integer> listarMembros(int grupoId) throws RemoteException;
+    boolean sairDoGrupo(int grupoId, int usuarioId) throws RemoteException;
+    boolean ehAdmin(int grupoId, int usuarioId) throws RemoteException;
+    boolean banirUsuario(int grupoId, int adminId, int usuarioParaBanir) throws RemoteException;
 
-    // Novos métodos para gerenciamento de pedidos de entrada
-    Set<String> listarPedidosPendentes(String nomeGrupo, String admin) throws RemoteException;
-    boolean aprovarEntrada(String nomeGrupo, String admin, String usuario) throws RemoteException;
-    boolean rejeitarEntrada(String nomeGrupo, String admin, String usuario) throws RemoteException;
+    // Methods for managing join requests
+    Set<Integer> listarPedidosPendentes(int grupoId, int adminId) throws RemoteException;
+    boolean aprovarEntrada(int grupoId, int adminId, int usuarioId) throws RemoteException;
+    boolean rejeitarEntrada(int grupoId, int adminId, int usuarioId) throws RemoteException;
+    
+    // Additional helper methods
+    String getNomeGrupo(int grupoId) throws RemoteException;
+    int getIdAdmin(int grupoId) throws RemoteException;
 }
