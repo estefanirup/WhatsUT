@@ -139,8 +139,7 @@ public class HttpBridge {
                             chatHolder[0].getNextMessageId(),
                             data.remetenteId,
                             data.destinatarioId,
-                            data.texto
-                    );
+                            data.texto);
                     chatHolder[0].sendMessage(message);
                     return gson.toJson(new SendMessageResponse(true, message.getId()));
                 } else {
@@ -168,7 +167,7 @@ public class HttpBridge {
             }
         });
 
-        //GRUPO 
+        // GRUPO
         post("/api/grupos", (req, res) -> {
             res.type("application/json");
             try {
@@ -179,8 +178,7 @@ public class HttpBridge {
                         data.nome,
                         data.descricao,
                         data.criador,
-                        data.membros
-                );
+                        data.membros);
                 return gson.toJson(new BasicResponse(success));
             } catch (Exception e) {
                 return gson.toJson(new BasicResponse(false, e.getMessage()));
@@ -188,16 +186,16 @@ public class HttpBridge {
         });
 
         get("/api/grupos", (req, res) -> {
-        res.type("application/json");
-        try {
-            List<Grupo> grupos = grupoHolder[0] != null 
-                    ? grupoHolder[0].listarGruposComDetalhes() 
-                    : Collections.emptyList();
-            return gson.toJson(grupos);
-        } catch (Exception e) {
-            return gson.toJson(Collections.emptyList());
-        }
-    });
+            res.type("application/json");
+            try {
+                List<Grupo> grupos = grupoHolder[0] != null
+                        ? grupoHolder[0].listarGruposComDetalhes()
+                        : Collections.emptyList();
+                return gson.toJson(grupos);
+            } catch (Exception e) {
+                return gson.toJson(Collections.emptyList());
+            }
+        });
 
         post("/api/grupos/entrar", (req, res) -> {
             res.type("application/json");
@@ -217,20 +215,21 @@ public class HttpBridge {
             try {
                 int grupoId = Integer.parseInt(req.params("id"));
                 List<Integer> membros = grupoHolder[0] != null
-                        ? grupoHolder[0].listarMembros(grupoId) : Collections.emptyList();
+                        ? grupoHolder[0].listarMembros(grupoId)
+                        : Collections.emptyList();
                 return gson.toJson(membros);
             } catch (Exception e) {
                 return gson.toJson(Collections.emptyList());
             }
         });
 
-        //grupos a qual um usuario faz parte
+        // grupos a qual um usuario faz parte
         get("/api/grupos/:userId", (req, res) -> {
             res.type("application/json");
             try {
                 int userId = Integer.parseInt(req.params("userId"));
-                List<Grupo> grupos = grupoHolder[0] != null 
-                        ? grupoHolder[0].listarGruposDoUsuario(userId) 
+                List<Grupo> grupos = grupoHolder[0] != null
+                        ? grupoHolder[0].listarGruposDoUsuario(userId)
                         : Collections.emptyList();
                 return gson.toJson(grupos);
             } catch (Exception e) {
@@ -244,10 +243,24 @@ public class HttpBridge {
                 int grupoId = Integer.parseInt(req.params("id"));
                 int adminId = Integer.parseInt(req.queryParams("adminId"));
                 Set<Integer> pedidos = grupoHolder[0] != null
-                        ? grupoHolder[0].listarPedidosPendentes(grupoId, adminId) : Collections.emptySet();
+                        ? grupoHolder[0].listarPedidosPendentes(grupoId, adminId)
+                        : Collections.emptySet();
                 return gson.toJson(pedidos);
             } catch (Exception e) {
                 return gson.toJson(Collections.emptySet());
+            }
+        });
+
+        get("/api/grupos/:id/admin", (req, res) -> {
+            res.type("application/json");
+            try {
+                int grupoId = Integer.parseInt(req.params("id"));
+                int usuarioId = Integer.parseInt(req.queryParams("usuarioId"));
+
+                boolean ehAdmin = grupoHolder[0] != null && grupoHolder[0].ehAdmin(grupoId, usuarioId);
+                return gson.toJson(new BasicResponse(ehAdmin));
+            } catch (Exception e) {
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
             }
         });
 
@@ -257,6 +270,30 @@ public class HttpBridge {
                 ApproveRequest data = gson.fromJson(req.body(), ApproveRequest.class);
                 boolean success = grupoHolder[0] != null
                         && grupoHolder[0].aprovarEntrada(data.grupoId, data.adminId, data.usuarioId);
+                return gson.toJson(new BasicResponse(success));
+            } catch (Exception e) {
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
+            }
+        });
+
+        post("/api/grupos/rejeitar", (req, res) -> {
+            res.type("application/json");
+            try {
+                ApproveRequest data = gson.fromJson(req.body(), ApproveRequest.class);
+                boolean success = grupoHolder[0] != null &&
+                        grupoHolder[0].rejeitarEntrada(data.grupoId, data.adminId, data.usuarioId);
+                return gson.toJson(new BasicResponse(success));
+            } catch (Exception e) {
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
+            }
+        });
+
+        post("/api/grupos/banir", (req, res) -> {
+            res.type("application/json");
+            try {
+                BanirRequest data = gson.fromJson(req.body(), BanirRequest.class);
+                boolean success = grupoHolder[0] != null
+                        && grupoHolder[0].banirUsuario(data.grupoId, data.adminId, data.usuarioParaBanir);
                 return gson.toJson(new BasicResponse(success));
             } catch (Exception e) {
                 return gson.toJson(new BasicResponse(false, e.getMessage()));
@@ -273,8 +310,7 @@ public class HttpBridge {
                             chatGrupoHolder[0].getNextMessageId(),
                             data.remetenteId,
                             data.grupoId,
-                            data.texto
-                    );
+                            data.texto);
                     chatGrupoHolder[0].enviarMensagemGrupo(data.grupoId, message);
                     return gson.toJson(new BasicResponse(true));
                 }
@@ -289,7 +325,8 @@ public class HttpBridge {
             try {
                 int grupoId = Integer.parseInt(req.params("grupoId"));
                 List<Message> messages = chatGrupoHolder[0] != null
-                        ? chatGrupoHolder[0].listarMensagensGrupo(grupoId) : Collections.emptyList();
+                        ? chatGrupoHolder[0].listarMensagensGrupo(grupoId)
+                        : Collections.emptyList();
                 return gson.toJson(messages);
             } catch (Exception e) {
                 return gson.toJson(Collections.emptyList());
@@ -370,6 +407,12 @@ public class HttpBridge {
         int grupoId;
         int adminId;
         int usuarioId;
+    }
+
+    static class BanirRequest {
+        int grupoId;
+        int adminId;
+        int usuarioParaBanir;
     }
 
     static class SendGroupMessageRequest {

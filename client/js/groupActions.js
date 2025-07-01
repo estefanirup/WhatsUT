@@ -1,5 +1,6 @@
 let loggedUser = parseInt(sessionStorage.getItem("loggedUserId"));
 
+// Envia pedido de entrada para o grupo
 async function entrarNoGrupo(grupoId) {
     try {
         const resp = await fetch("http://localhost:4567/api/grupos/entrar", {
@@ -20,59 +21,93 @@ async function entrarNoGrupo(grupoId) {
     }
 }
 
-async function verificarAdmin(nomeGrupo) {
-  const resp = await fetch("http://localhost:4567/api/grupos/ehadmin", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nomeGrupo, usuario: "" + loggedUser })
-  });
-  const data = await resp.json();
-  return data.sucesso;
+// Verifica se o usuário atual é admin do grupo
+async function verificarAdmin(grupoId) {
+    try {
+        const resp = await fetch(`http://localhost:4567/api/grupos/${grupoId}/admin?usuarioId=${loggedUser}`);
+        const data = await resp.json();
+        return data.success;
+    } catch (e) {
+        console.error("Erro ao verificar admin:", e);
+        return false;
+    }
 }
 
-async function listarPedidosPendentes(nomeGrupo) {
-  const resp = await fetch("http://localhost:4567/api/grupos/pedidos", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nomeGrupo, admin: "" + loggedUser })
-  });
-  const data = await resp.json();
-  return data.pedidos || [];
+// Lista os pedidos pendentes de entrada no grupo
+async function listarPedidosPendentes(grupoId) {
+    try {
+        const resp = await fetch(`http://localhost:4567/api/grupos/${grupoId}/pedidos?adminId=${loggedUser}`);
+        const data = await resp.json();
+        return data || [];
+    } catch (e) {
+        console.error("Erro ao listar pedidos pendentes:", e);
+        return [];
+    }
 }
 
-async function aprovarUsuario(nomeGrupo, usuario) {
-  const resp = await fetch("http://localhost:4567/api/grupos/aprovar", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nomeGrupo, admin: "" + loggedUser, usuario })
-  });
-  const data = await resp.json();
-  return data.sucesso;
+// Aprova um usuário no grupo
+async function aprovarUsuario(grupoId, usuarioId) {
+    try {
+        const resp = await fetch("http://localhost:4567/api/grupos/aprovar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ grupoId, adminId: loggedUser, usuarioId })
+        });
+
+        const data = await resp.json();
+        if (data.success) {
+            alert("Usuário aprovado!");
+        } else {
+            alert("Erro ao aprovar usuário: " + (data.error || ""));
+        }
+        return data.success;
+    } catch (e) {
+        console.error("Erro ao aprovar usuário:", e);
+        return false;
+    }
 }
 
-async function rejeitarUsuario(nomeGrupo, usuario) {
-  const resp = await fetch("http://localhost:4567/api/grupos/rejeitar", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nomeGrupo, admin: "" + loggedUser, usuario })
-  });
-  const data = await resp.json();
-  return data.sucesso;
+// Rejeita um pedido de entrada no grupo
+async function rejeitarUsuario(grupoId, usuarioId) {
+    try {
+        const resp = await fetch("http://localhost:4567/api/grupos/rejeitar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ grupoId, adminId: loggedUser, usuarioId })
+        });
+
+        const data = await resp.json();
+        if (data.success) {
+            alert("Pedido rejeitado.");
+        } else {
+            alert("Erro ao rejeitar pedido: " + (data.error || ""));
+        }
+        return data.success;
+    } catch (e) {
+        console.error("Erro ao rejeitar pedido:", e);
+        return false;
+    }
 }
 
+// Bane um usuário do grupo
 async function banirUsuario(grupoId, usuarioId) {
     try {
         const resp = await fetch("http://localhost:4567/api/grupos/banir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ 
-                grupoId: grupoId, 
+                grupoId, 
                 adminId: loggedUser, 
                 usuarioParaBanir: usuarioId 
             })
         });
-        
+
         const data = await resp.json();
+        if (data.success) {
+            alert("Usuário banido.");
+        } else {
+            alert("Erro ao banir usuário: " + (data.error || ""));
+        }
         return data.success;
     } catch (e) {
         console.error("Erro ao banir usuário:", e);
