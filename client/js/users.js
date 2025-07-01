@@ -5,8 +5,8 @@ let isGrupo = false;
 let messagesInterval = null;
 
 if (!loggedUserId || loggedUserId === -1) {
-    alert("Usuário não logado corretamente!");
-    window.location.href = "login.html";
+  alert("Usuário não logado corretamente!");
+  window.location.href = "login.html";
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -53,7 +53,7 @@ async function carregarGrupos() {
       const li = document.createElement("li");
       li.classList.add("grupo-item");
       li.innerHTML = `<strong>#</strong> ${grupo.nome}`;
-      li.onclick = () => abrirChat(grupo , true);
+      li.onclick = () => abrirChat(grupo, true);
       ul.appendChild(li);
     });
   } catch (err) {
@@ -104,34 +104,32 @@ async function carregarMensagens() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       throw new TypeError("Response is not JSON");
     }
-    
+
     const mensagens = await response.json();
     const chat = document.getElementById("chatMessages");
     chat.innerHTML = "";
-    
-    // For group chats, we need to fetch user information for each sender
+
     if (isGrupo) {
-      // First get all users to map IDs to names
       const usersResponse = await fetch("http://localhost:4567/api/usuarios");
       const allUsers = await usersResponse.json();
       const userMap = {};
       allUsers.forEach(user => {
         userMap[user.id] = user.nome;
       });
-      
+
       mensagens.forEach(msg => {
-        const time = msg.horario ? new Date(msg.horario).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        const time = msg.horario ? new Date(msg.horario).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
         }) : '';
-        
+
         const senderName = msg.userId === loggedUserId ? "Você" : (userMap[msg.userId] || `Usuário ${msg.userId}`);
-        
+
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${msg.userId === loggedUserId ? 'sent' : 'received'}`;
         msgDiv.innerHTML = `
@@ -144,11 +142,11 @@ async function carregarMensagens() {
     } else {
       // For private chats, use the existing logic
       mensagens.forEach(msg => {
-        const time = msg.horario ? new Date(msg.horario).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        const time = msg.horario ? new Date(msg.horario).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
         }) : '';
-        
+
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${msg.userId === loggedUserId ? 'sent' : 'received'}`;
         msgDiv.innerHTML = `
@@ -159,7 +157,7 @@ async function carregarMensagens() {
         chat.appendChild(msgDiv);
       });
     }
-    
+
     chat.scrollTop = chat.scrollHeight;
   } catch (error) {
     console.error("Error loading messages:", error);
@@ -176,16 +174,16 @@ function enviarMensagem() {
     : "http://localhost:4567/api/messages/send";
 
   const payload = isGrupo
-    ? { 
-        remetenteId: loggedUserId, 
-        grupoId: currentGrupo.id,  // Use grupoId for group messages
-        texto 
-      }
-    : { 
-        remetenteId: loggedUserId, 
-        destinatarioId: currentUser.id,  // Use destinatarioId for private messages
-        texto 
-      };
+    ? {
+      remetenteId: loggedUserId,
+      grupoId: currentGrupo.id,  // Use grupoId for group messages
+      texto
+    }
+    : {
+      remetenteId: loggedUserId,
+      destinatarioId: currentUser.id,  // Use destinatarioId for private messages
+      texto
+    };
 
   fetch(url, {
     method: "POST",
@@ -210,47 +208,47 @@ function escapeHtml(text) {
 }
 
 async function mostrarPedidos(grupoId) {
-    try {
-        const resposta = await fetch(`http://localhost:4567/api/grupos/${grupoId}/pedidos?adminId=${loggedUserId}`);
-        if (!resposta.ok) throw new Error("Erro ao carregar pedidos");
-        
-        const pedidos = await resposta.json();
-        const modal = document.getElementById("modalPedidos");
-        const lista = document.getElementById("listaPedidos");
-        
-        lista.innerHTML = pedidos.map(userId => `
+  try {
+    const resposta = await fetch(`http://localhost:4567/api/grupos/${grupoId}/pedidos?adminId=${loggedUserId}`);
+    if (!resposta.ok) throw new Error("Erro ao carregar pedidos");
+
+    const pedidos = await resposta.json();
+    const modal = document.getElementById("modalPedidos");
+    const lista = document.getElementById("listaPedidos");
+
+    lista.innerHTML = pedidos.map(userId => `
             <li>
                 Usuário ${userId}
                 <button onclick="aprovarPedido(${grupoId}, ${userId})">Aprovar</button>
                 <button onclick="rejeitarPedido(${grupoId}, ${userId})">Rejeitar</button>
             </li>
         `).join('');
-        
-        modal.style.display = 'block';
-    } catch (e) {
-        console.error("Erro ao mostrar pedidos:", e);
-    }
+
+    modal.style.display = 'block';
+  } catch (e) {
+    console.error("Erro ao mostrar pedidos:", e);
+  }
 }
 
 function fecharModalPedidos() {
-    document.getElementById("modalPedidos").style.display = 'none';
+  document.getElementById("modalPedidos").style.display = 'none';
 }
 
 async function aprovarPedido(grupoId, userId) {
-    try {
-        const resposta = await fetch("http://localhost:4567/api/grupos/aprovar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ grupoId, adminId: loggedUserId, usuarioId: userId })
-        });
-        
-        if (resposta.ok) {
-            mostrarPedidos(grupoId);
-            carregarGrupos();
-        }
-    } catch (e) {
-        console.error("Erro ao aprovar pedido:", e);
+  try {
+    const resposta = await fetch("http://localhost:4567/api/grupos/aprovar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grupoId, adminId: loggedUserId, usuarioId: userId })
+    });
+
+    if (resposta.ok) {
+      mostrarPedidos(grupoId);
+      carregarGrupos();
     }
+  } catch (e) {
+    console.error("Erro ao aprovar pedido:", e);
+  }
 }
 
 
