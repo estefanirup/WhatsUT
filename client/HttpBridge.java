@@ -284,16 +284,6 @@ public class HttpBridge {
                 return gson.toJson(Collections.emptyList());
             }
         });
-            res.type("application/json");
-            try {
-                List<Grupo> grupos = grupoHolder[0] != null
-                        ? grupoHolder[0].listarGruposComDetalhes()
-                        : Collections.emptyList();
-                return gson.toJson(grupos);
-            } catch (Exception e) {
-                return gson.toJson(Collections.emptyList());
-            }
-        });
 
         post("/api/grupos/entrar", (req, res) -> {
             res.type("application/json");
@@ -326,8 +316,6 @@ public class HttpBridge {
             res.type("application/json");
             try {
                 int userId = Integer.parseInt(req.params("userId"));
-                List<Grupo> grupos = grupoHolder[0] != null
-                        ? grupoHolder[0].listarGruposDoUsuario(userId)
                 List<Grupo> grupos = grupoHolder[0] != null
                         ? grupoHolder[0].listarGruposDoUsuario(userId)
                         : Collections.emptyList();
