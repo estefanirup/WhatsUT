@@ -44,7 +44,7 @@ async function carregarUsuarios() {
 
 async function carregarGrupos() {
   try {
-    const resposta = await fetch("http://localhost:4567/api/grupos");
+    const resposta = await fetch(`http://localhost:4567/api/grupos/${loggedUserId}`);
     const grupos = await resposta.json();
     const ul = document.getElementById("groupList");
     ul.innerHTML = "";

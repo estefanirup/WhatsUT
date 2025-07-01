@@ -12,9 +12,7 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
     private final String FILE_PATH = "server/data/grupos.txt";
     private final String FILE_PEDIDOS = "server/data/grupos_pedidos.txt";
 
-    // Mapa idGrupo -> Grupo
     private final Map<Integer, Grupo> grupos = new HashMap<>();
-    // Mapa idGrupo -> usuários pendentes para aprovação
     private final Map<Integer, Set<Integer>> pedidosPendentes = new HashMap<>();
 
     public GrupoImpl() throws RemoteException {
@@ -126,12 +124,9 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
         if (nome == null || nome.trim().isEmpty()) {
             return false;
         }
-
-        // Generate a new ID instead of using the one from frontend
         int newId = grupos.isEmpty() ? 1 : Collections.max(grupos.keySet()) + 1;
-
         if (grupos.containsKey(newId)) {
-            return false; // Shouldn't happen with this ID generation
+            return false;
         }
 
         Grupo grupo = new Grupo(newId, idAdmin, nome.trim(), descricao, criador, membros);
@@ -187,6 +182,26 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
     public synchronized List<Integer> listarMembros(int grupoId) throws RemoteException {
         Grupo grupo = grupos.get(grupoId);
         return grupo == null ? Collections.emptyList() : new ArrayList<>(grupo.getMembros());
+    }
+
+    @Override
+    public synchronized List<Grupo> listarGruposDoUsuario(int usuarioId) throws RemoteException {
+        List<Grupo> gruposDoUsuario = new ArrayList<>();
+
+        for (Grupo grupo : grupos.values()) {
+            if (grupo.getMembros().contains(usuarioId)) {
+                gruposDoUsuario.add(new Grupo(
+                        grupo.getId(),
+                        grupo.getIdAdmin(),
+                        grupo.getNome(),
+                        grupo.getDescricao(),
+                        grupo.getCriador(),
+                        grupo.getMembros()
+                ));
+            }
+        }
+
+        return gruposDoUsuario;
     }
 
     @Override
