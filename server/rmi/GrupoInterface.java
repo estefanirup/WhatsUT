@@ -15,6 +15,7 @@ public interface GrupoInterface extends Remote {
     List<Grupo> listarGruposDoUsuario(int usuarioId) throws RemoteException;
     boolean sairDoGrupo(int grupoId, int usuarioId) throws RemoteException;
     boolean ehAdmin(int grupoId, int usuarioId) throws RemoteException;
+    boolean ehParticipante(int grupoId, int usuarioId) throws RemoteException;
     boolean banirUsuario(int grupoId, int adminId, int usuarioParaBanir) throws RemoteException;
 
     // Methods for managing join requests

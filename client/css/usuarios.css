@@ -442,3 +442,365 @@ body {
 #fileButton:active {
   transform: scale(0.98);
 }
+
+.group-item-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.group-name {
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.btn-pedidos {
+  background-color: #ffcc00;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-pedidos:hover {
+  background-color: #e6b800;
+}
+
+#groupList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.grupo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-bottom: 1px solid #ccc;
+}
+
+.btn-grupo {
+  background: transparent;
+  border: none;
+  font-size: 20px; /* tamanho só do emoji */
+  padding: 0 6px;
+  cursor: pointer;
+  width: auto;
+  min-width: 30px;
+  height: 30px;
+  line-height: 1;
+  user-select: none;
+}
+
+#modalPedidos {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 20px;
+  display: none; /* inicialmente escondido */
+  z-index: 1000;
+}
+
+#modalPedidos h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+  text-align: center;
+}
+
+#listaPedidos {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+}
+
+#listaPedidos li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 6px;
+  border-bottom: 1px solid #eee;
+}
+
+#listaPedidos li:last-child {
+  border-bottom: none;
+}
+
+#listaPedidos button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-aceitar {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-aceitar:hover {
+  background-color: #218838;
+}
+
+.btn-rejeitar {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-rejeitar:hover {
+  background-color: #c82333;
+}
+
+button.fechar {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 18px;
+  margin-top: 15px;
+  display: block;
+  width: 100%;
+  font-weight: 700;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button.fechar:hover {
+  background-color: #c82333;
+}
+
+/* Estilo geral para modais */
+#modalMembros, #modalPedidos {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  z-index: 1000;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Lista de membros */
+#listaMembros {
+  max-height: 250px;
+  overflow-y: auto;
+  margin: 15px 0;
+  padding-left: 0;
+  list-style: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* Itens da lista */
+#listaMembros li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Último item sem border */
+#listaMembros li:last-child {
+  border-bottom: none;
+}
+
+/* Botões dentro do modal */
+#modalMembros button, #modalPedidos button {
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-left: 8px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+/* Botão Adicionar usuário */
+#btnAddUsuario {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 16px;
+  font-weight: 600;
+  border-radius: 5px;
+  margin-left: 8px;
+}
+
+#btnAddUsuario:hover {
+  background-color: #218838;
+}
+
+/* Botão fechar */
+button.fechar {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 18px;
+  margin-top: 15px;
+  display: block;
+  width: 100%;
+  font-weight: 700;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button.fechar:hover {
+  background-color: #c82333;
+}
+
+/* Botões de banir e outros na lista */
+#listaMembros li button {
+  background-color: #ff4d4f;
+  color: white;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+#listaMembros li button:hover {
+  background-color: #d9363e;
+}
+
+/* Input de ID */
+#inputAddUsuario {
+  width: calc(100% - 110px);
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+/* Estilo geral para modais */
+#modalMembros, #modalPedidos {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  z-index: 1000;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Lista de membros */
+#listaMembros {
+  max-height: 250px;
+  overflow-y: auto;
+  margin: 15px 0;
+  padding-left: 0;
+  list-style: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* Itens da lista */
+#listaMembros li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Último item sem border */
+#listaMembros li:last-child {
+  border-bottom: none;
+}
+
+/* Botões dentro do modal */
+#modalMembros button, #modalPedidos button {
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-left: 8px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+/* Botão Adicionar usuário */
+#btnAddUsuario {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 16px;
+  font-weight: 600;
+  border-radius: 5px;
+  margin-left: 8px;
+}
+
+#btnAddUsuario:hover {
+  background-color: #218838;
+}
+
+/* Botão fechar */
+button.fechar {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 18px;
+  margin-top: 15px;
+  display: block;
+  width: 100%;
+  font-weight: 700;
+  border-radius: 5px;
+}
+
+button.fechar:hover {
+  background-color: #c82333;
+}
+
+/* Botões de banir e outros na lista */
+#listaMembros li button {
+  background-color: #ff4d4f;
+  color: white;
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+#listaMembros li button:hover {
+  background-color: #d9363e;
+}
+
+/* Input de ID */
+#inputAddUsuario {
+  width: calc(100% - 110px);
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-sizing: border-box;
+}

@@ -69,8 +69,7 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
                         grupo.getNome(),
                         grupo.getDescricao(),
                         grupo.getCriador(),
-                        membrosStr
-                );
+                        membrosStr);
                 writer.write(linha);
                 writer.newLine();
             }
@@ -120,7 +119,8 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
 
     // --- MÉTODOS PRINCIPAIS ---
     @Override
-    public synchronized boolean criarGrupo(int id, int idAdmin, String nome, String descricao, String criador, List<Integer> membros) throws RemoteException {
+    public synchronized boolean criarGrupo(int id, int idAdmin, String nome, String descricao, String criador,
+            List<Integer> membros) throws RemoteException {
         if (nome == null || nome.trim().isEmpty()) {
             return false;
         }
@@ -146,8 +146,7 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
                     grupo.getNome(),
                     grupo.getDescricao(),
                     grupo.getCriador(),
-                    grupo.getMembros()
-            ));
+                    grupo.getMembros()));
         }
         return gruposComDetalhes;
     }
@@ -196,8 +195,7 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
                         grupo.getNome(),
                         grupo.getDescricao(),
                         grupo.getCriador(),
-                        grupo.getMembros()
-                ));
+                        grupo.getMembros()));
             }
         }
 
@@ -304,4 +302,16 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
         Grupo grupo = grupos.get(grupoId);
         return grupo == null ? -1 : grupo.getIdAdmin();
     }
+
+    @Override
+    public boolean ehParticipante(int grupoId, int usuarioId) throws RemoteException {
+
+        Grupo grupo = grupos.get(grupoId);
+        if (grupo == null)
+            return false;
+
+        List<Integer> membros = grupo.getMembros(); 
+        return membros.contains(usuarioId);
+    }
+
 }

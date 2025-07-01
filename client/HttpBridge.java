@@ -177,8 +177,8 @@ public class HttpBridge {
 
         // Arquivo
         before("/api/messages/send-file", (req, res) -> {
-            req.raw().setAttribute("org.eclipse.jetty.multipartConfig", 
-                new MultipartConfigElement("/temp"));
+            req.raw().setAttribute("org.eclipse.jetty.multipartConfig",
+                    new MultipartConfigElement("/temp"));
         });
 
         post("/api/messages/send-file", (req, res) -> {
@@ -195,13 +195,13 @@ public class HttpBridge {
 
                 int remetenteId = Integer.parseInt(new String(remetenteIdPart.getInputStream().readAllBytes()));
                 int destinatarioId = Integer.parseInt(new String(destinatarioIdPart.getInputStream().readAllBytes()));
-                
+
                 String originalFilename = filePart.getSubmittedFileName();
                 String fileType = filePart.getContentType();
                 long fileSize = filePart.getSize();
-                
-                String uniqueFilename = System.currentTimeMillis() + "_" + remetenteId + "_" + 
-                    originalFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+
+                String uniqueFilename = System.currentTimeMillis() + "_" + remetenteId + "_" +
+                        originalFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
                 Path filePath = uploadDir.resolve(uniqueFilename);
 
                 try (InputStream fileStream = filePart.getInputStream()) {
@@ -209,25 +209,23 @@ public class HttpBridge {
                 }
 
                 String messageText = String.format(
-                    "[FILE] name=%s|type=%s|size=%d|path=%s",
-                    originalFilename,
-                    fileType,
-                    fileSize,
-                    uniqueFilename
-                );
+                        "[FILE] name=%s|type=%s|size=%d|path=%s",
+                        originalFilename,
+                        fileType,
+                        fileSize,
+                        uniqueFilename);
 
                 if (chatHolder[0] != null) {
                     Message message = new Message(
-                        chatHolder[0].getNextMessageId(),
-                        remetenteId,
-                        destinatarioId,
-                        messageText
-                    );
+                            chatHolder[0].getNextMessageId(),
+                            remetenteId,
+                            destinatarioId,
+                            messageText);
                     chatHolder[0].sendMessage(message);
-                    
+
                     return gson.toJson(new SendMessageResponse(true, message.getId()));
                 }
-                
+
                 return gson.toJson(new SendMessageResponse(false, -1));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -322,6 +320,19 @@ public class HttpBridge {
                 return gson.toJson(grupos);
             } catch (Exception e) {
                 return gson.toJson(Collections.emptyList());
+            }
+        });
+
+        get("/api/grupos/:id/participante", (req, res) -> {
+            res.type("application/json");
+            try {
+                int grupoId = Integer.parseInt(req.params("id"));
+                int usuarioId = Integer.parseInt(req.queryParams("usuarioId"));
+
+                boolean ehParticipante = grupoHolder[0] != null && grupoHolder[0].ehParticipante(grupoId, usuarioId);
+                return gson.toJson(new BasicResponse(ehParticipante));
+            } catch (Exception e) {
+                return gson.toJson(new BasicResponse(false, e.getMessage()));
             }
         });
 

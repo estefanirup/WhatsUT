@@ -28,10 +28,22 @@
   </div>
 
   <!-- Modal de Pedidos -->
-  <div id="modalPedidos">
+  <div id="modalPedidos" style="display:none;">
     <h3>Pedidos Pendentes</h3>
     <ul id="listaPedidos"></ul>
     <button class="fechar" onclick="fecharModalPedidos()">Fechar</button>
+  </div>
+
+  <!-- Modal de Membros do Grupo -->
+  <div id="modalMembros" style="display:none;">
+    <h3>Membros do Grupo</h3>
+    <ul id="listaMembros"></ul>
+
+    <h4>Adicionar usuário</h4>
+    <input type="number" id="inputAddUsuario" placeholder="ID do usuário" />
+    <button id="btnAddUsuario">Adicionar</button>
+
+    <button class="fechar" onclick="fecharModalMembros()">Fechar</button>
   </div>
 </body>
 

@@ -58,23 +58,246 @@ async function carregarUsuarios() {
 
 async function carregarGrupos() {
   try {
-    const resposta = await fetch(`http://localhost:4567/api/grupos/${loggedUserId}`);
+    const resposta = await fetch("http://localhost:4567/api/grupos");
     const grupos = await resposta.json();
     const ul = document.getElementById("groupList");
     ul.innerHTML = "";
 
-    grupos.forEach(grupo => {
+    for (const grupo of grupos) {
+      const isParticipante = await verificarParticipante(grupo.id);
+      const isAdmin = await verificarAdmin(grupo.id);
+
       const li = document.createElement("li");
       li.classList.add("grupo-item");
       li.innerHTML = `<strong>#</strong> ${grupo.nome}`;
-      li.onclick = () => abrirChat(grupo, true);
+
+      if (isParticipante) {
+        li.style.cursor = "pointer";
+        li.onclick = () => abrirChat(grupo, true);
+
+        if (isAdmin) {
+          const btnPedidos = document.createElement("button");
+          btnPedidos.textContent = "👥";
+          btnPedidos.classList.add("btn-grupo");
+          btnPedidos.onclick = (e) => {
+            e.stopPropagation();
+            mostrarPedidos(grupo.id);
+          };
+          li.appendChild(btnPedidos);
+
+          // Botão Membros para abrir modalMembros
+          const btnMembros = document.createElement("button");
+          btnMembros.textContent = "👤";  // ou "👥" se quiser
+          btnMembros.classList.add("btn-grupo");
+          btnMembros.style.marginLeft = "5px";
+          btnMembros.onclick = (e) => {
+            e.stopPropagation();
+            abrirModalMembros(grupo.id);
+          };
+          li.appendChild(btnMembros);
+        }
+      } else {
+        li.style.cursor = "default";
+
+        const btnPedirEntrada = document.createElement("button");
+        btnPedirEntrada.textContent = "➕";
+        btnPedirEntrada.classList.add("btn-grupo");
+        btnPedirEntrada.onclick = async (e) => {
+          e.stopPropagation();
+          await entrarNoGrupo(grupo.id);
+          alert("Pedido enviado para o grupo " + grupo.nome);
+        };
+
+        li.appendChild(btnPedirEntrada);
+      }
+
       ul.appendChild(li);
-    });
+    }
   } catch (err) {
     alert("Erro ao carregar grupos.");
     console.error(err);
   }
 }
+
+// Verifica se usuário participa do grupo, consultando membros do grupo
+async function verificarParticipante(grupoId) {
+  try {
+    const resp = await fetch(`http://localhost:4567/api/grupos/${grupoId}/membros`);
+    if (!resp.ok) return false;
+    const membros = await resp.json();
+    return membros.includes(loggedUserId);
+  } catch (e) {
+    console.error("Erro ao verificar participante:", e);
+    return false;
+  }
+}
+
+// Verifica se usuário é admin do grupo (endpoint já existe)
+async function verificarAdmin(grupoId) {
+  try {
+    const resp = await fetch(`http://localhost:4567/api/grupos/${grupoId}/admin?usuarioId=${loggedUserId}`);
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    return data.success === true;
+  } catch (e) {
+    console.error("Erro ao verificar admin:", e);
+    return false;
+  }
+}
+
+// Exemplo simples de função para entrar no grupo (faz POST)
+async function entrarNoGrupo(grupoId) {
+  try {
+    const resp = await fetch("http://localhost:4567/api/grupos/entrar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grupoId, usuarioId: loggedUserId }),
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || "Falha ao enviar pedido");
+  } catch (e) {
+    alert("Erro ao pedir entrada no grupo: " + e.message);
+  }
+}
+
+// Placeholder para abrir o chat (implemente conforme seu app)
+function abrirChat(grupo, isGroup = false) {
+  console.log("Abrir chat do grupo:", grupo.nome, "Grupo?", isGroup);
+}
+
+// Placeholder para mostrar pedidos de entrada (implemente conforme seu app)
+async function mostrarPedidos(grupoId) {
+  try {
+    const resposta = await fetch(`http://localhost:4567/api/grupos/${grupoId}/pedidos?adminId=${loggedUserId}`);
+    const pedidos = await resposta.json();
+
+    const lista = document.getElementById("listaPedidos");
+    lista.innerHTML = "";
+
+    if (pedidos.length === 0 || pedidos.size === 0) {
+      lista.innerHTML = "<li>Nenhum pedido pendente.</li>";
+    } else {
+      // Se pedidos for um Set (como seu backend devolve), converta para array:
+      const pedidosArray = Array.isArray(pedidos) ? pedidos : Array.from(pedidos);
+
+      for (const usuarioId of pedidosArray) {
+        const li = document.createElement("li");
+
+        // Aqui você pode buscar o nome do usuário via API, ou já passar o nome
+        // Se não tiver API, só mostra o ID mesmo:
+        li.textContent = `Usuário ID: ${usuarioId}`;
+
+        // Botões aceitar e rejeitar
+        const btnAceitar = document.createElement("button");
+        btnAceitar.textContent = "✔";
+        btnAceitar.classList.add("btn-aceitar");
+        btnAceitar.onclick = async (e) => {
+          e.stopPropagation();
+          await aprovarEntrada(grupoId, loggedUserId, usuarioId);
+          alert("Entrada aprovada!");
+          mostrarPedidos(grupoId); // atualiza a lista
+        };
+
+        const btnRejeitar = document.createElement("button");
+        btnRejeitar.textContent = "✖";
+        btnRejeitar.classList.add("btn-rejeitar");
+        btnRejeitar.onclick = async (e) => {
+          e.stopPropagation();
+          await rejeitarEntrada(grupoId, loggedUserId, usuarioId);
+          alert("Entrada rejeitada!");
+          mostrarPedidos(grupoId); // atualiza a lista
+        };
+
+        const btnContainer = document.createElement("span");
+        btnContainer.appendChild(btnAceitar);
+        btnContainer.appendChild(btnRejeitar);
+
+        li.appendChild(btnContainer);
+        lista.appendChild(li);
+      }
+    }
+
+    document.getElementById("modalPedidos").style.display = "block";
+  } catch (err) {
+    alert("Erro ao carregar pedidos pendentes.");
+    console.error(err);
+  }
+}
+
+function fecharModalPedidos() {
+  document.getElementById("modalPedidos").style.display = "none";
+}
+
+
+
+async function abrirModalPedidos(pedidos, grupoId) {
+  const ul = document.getElementById("listaPedidos");
+  ul.innerHTML = "";
+
+  // 🔁 Buscando todos os usuários para mapear ID -> nome
+  const usuarios = await fetch("http://localhost:4567/api/usuarios").then(r => r.json());
+  const userMap = {};
+  usuarios.forEach(u => userMap[u.id] = u.nome);
+
+  pedidos.forEach(usuarioId => {
+    const li = document.createElement("li");
+
+    const nome = userMap[usuarioId] || `ID ${usuarioId}`;
+    li.textContent = `Usuário ${nome} `;
+
+    // Botões (mantém o ID no backend)
+    const btnAprovar = document.createElement("button");
+    btnAprovar.textContent = "Aprovar";
+    btnAprovar.onclick = async () => {
+      await aprovarUsuario(grupoId, usuarioId);
+      alert("Usuário aprovado!");
+      ul.removeChild(li);
+    };
+
+    const btnRejeitar = document.createElement("button");
+    btnRejeitar.textContent = "Rejeitar";
+    btnRejeitar.onclick = async () => {
+      await rejeitarUsuario(grupoId, usuarioId);
+      alert("Usuário rejeitado!");
+      ul.removeChild(li);
+    };
+
+    const btnBanir = document.createElement("button");
+    btnBanir.textContent = "Banir";
+    btnBanir.onclick = async () => {
+      await banirUsuario(grupoId, usuarioId);
+      alert("Usuário banido!");
+      ul.removeChild(li);
+    };
+
+    li.appendChild(btnAprovar);
+    li.appendChild(btnRejeitar);
+    li.appendChild(btnBanir);
+    ul.appendChild(li);
+  });
+
+  document.getElementById("modalPedidos").style.display = "block";
+}
+
+
+async function mostrarPedidos(grupoId) {
+  try {
+    // Busca os pedidos no backend
+    const resp = await fetch(`http://localhost:4567/api/grupos/${grupoId}/pedidos?adminId=${loggedUserId}`);
+
+    // Verifica se a resposta foi OK (status 200)
+    if (!resp.ok) throw new Error("Erro ao carregar pedidos");
+
+    // Pega a lista de pedidos (array de IDs ou objetos de usuários)
+    const pedidos = await resp.json();
+
+    // Abre o modal passando os pedidos e o grupo atual
+    abrirModalPedidos(pedidos, grupoId);
+  } catch (e) {
+    console.error("Erro ao mostrar pedidos:", e);
+  }
+}
+
 
 function abrirChat(destinatario, grupo) {
   if (grupo) {
@@ -111,7 +334,7 @@ function abrirChat(destinatario, grupo) {
     document.getElementById('fileInput').addEventListener('change', (e) => {
       if (e.target.files.length > 0) {
         enviarArquivo(e.target.files[0]);
-        e.target.value = ''; 
+        e.target.value = '';
       }
     });
   }
@@ -363,7 +586,7 @@ async function enviarArquivo(file) {
     });
 
     const result = await response.json();
-    
+
     if (result.success) {
       carregarMensagens();
     } else {
@@ -390,4 +613,117 @@ function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + " bytes";
   else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
   else return (bytes / 1048576).toFixed(1) + " MB";
+}
+
+
+async function abrirModalMembros(grupoId) {
+  // Salva grupoId em variável global para usar nos handlers
+  window.grupoAtual = grupoId;
+
+  const ul = document.getElementById("listaMembros");
+  ul.innerHTML = "";
+
+  try {
+    const resp = await fetch(`http://localhost:4567/api/grupos/${grupoId}/membros`);
+    const membros = await resp.json();
+
+    for (const usuarioId of membros) {
+      const li = document.createElement("li");
+      li.textContent = `Usuário ID: ${usuarioId} `;
+
+      // Botão banir
+      const btnBanir = document.createElement("button");
+      btnBanir.textContent = "🚫 Banir";
+      btnBanir.style.marginLeft = "10px";
+      btnBanir.onclick = async () => {
+        if (confirm(`Tem certeza que quer banir o usuário ${usuarioId}?`)) {
+          await banirUsuarioDoGrupo(grupoId, usuarioId);
+          abrirModalMembros(grupoId); // Atualiza a lista
+        }
+      };
+
+      li.appendChild(btnBanir);
+      ul.appendChild(li);
+    }
+
+    // Mostrar modal
+    document.getElementById("modalMembros").style.display = "block";
+
+  } catch (err) {
+    alert("Erro ao carregar membros do grupo.");
+    console.error(err);
+  }
+}
+
+async function banirUsuarioDoGrupo(grupoId, usuarioParaBanir) {
+  try {
+    // Usar id do admin logado - ajustar conforme seu app
+    const adminId = loggedUserId;
+
+    const resp = await fetch("http://localhost:4567/api/grupos/banir", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grupoId: grupoId,
+        adminId: adminId,
+        usuarioParaBanir: usuarioParaBanir
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      alert("Usuário banido com sucesso!");
+    } else {
+      alert("Falha ao banir usuário: " + (data.error || "Erro desconhecido"));
+    }
+  } catch (e) {
+    alert("Erro ao banir usuário.");
+    console.error(e);
+  }
+}
+
+document.getElementById("btnAddUsuario").onclick = async () => {
+  const input = document.getElementById("inputAddUsuario");
+
+  const nome = input.value.trim();
+  const usuarioId = await buscarUsuarioIdPorNome(nome);
+  if (!usuarioId) {
+    alert("Usuário não encontrado");
+    return;
+  }
+
+
+  if (isNaN(usuarioId)) {
+    alert("ID de usuário inválido");
+    return;
+  }
+  const grupoId = window.grupoAtual;
+  await adicionarUsuarioAoGrupo(grupoId, usuarioId);
+  input.value = "";
+  abrirModalMembros(grupoId); // Atualiza lista
+};
+
+async function adicionarUsuarioAoGrupo(grupoId, usuarioId) {
+  try {
+    const resp = await fetch("http://localhost:4567/api/grupos/entrar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grupoId: grupoId,
+        usuarioId: usuarioId
+      })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      alert("Usuário adicionado com sucesso!");
+    } else {
+      alert("Falha ao adicionar usuário: " + (data.error || "Erro desconhecido"));
+    }
+  } catch (e) {
+    alert("Erro ao adicionar usuário.");
+    console.error(e);
+  }
+}
+
+function fecharModalMembros() {
+  document.getElementById("modalMembros").style.display = "none";
 }
