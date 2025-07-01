@@ -10,6 +10,7 @@ import server.rmi.ChatGrupoInterface;
 import server.rmi.GrupoInterface;
 import server.model.UsuarioPublico;
 import server.model.Message;
+import server.model.Grupo;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -19,7 +20,14 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Date;
-import server.model.Grupo;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Base64;
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.Part;
 
 public class HttpBridge {
 
@@ -167,6 +175,86 @@ public class HttpBridge {
             }
         });
 
+        // Arquivo
+        before("/api/messages/send-file", (req, res) -> {
+            req.raw().setAttribute("org.eclipse.jetty.multipartConfig", 
+                new MultipartConfigElement("/temp"));
+        });
+
+        post("/api/messages/send-file", (req, res) -> {
+            res.type("application/json");
+            try {
+                Path uploadDir = Paths.get("uploads");
+                if (!Files.exists(uploadDir)) {
+                    Files.createDirectories(uploadDir);
+                }
+
+                Part filePart = req.raw().getPart("file");
+                Part remetenteIdPart = req.raw().getPart("remetenteId");
+                Part destinatarioIdPart = req.raw().getPart("destinatarioId");
+
+                int remetenteId = Integer.parseInt(new String(remetenteIdPart.getInputStream().readAllBytes()));
+                int destinatarioId = Integer.parseInt(new String(destinatarioIdPart.getInputStream().readAllBytes()));
+                
+                String originalFilename = filePart.getSubmittedFileName();
+                String fileType = filePart.getContentType();
+                long fileSize = filePart.getSize();
+                
+                String uniqueFilename = System.currentTimeMillis() + "_" + remetenteId + "_" + 
+                    originalFilename.replaceAll("[^a-zA-Z0-9.-]", "_");
+                Path filePath = uploadDir.resolve(uniqueFilename);
+
+                try (InputStream fileStream = filePart.getInputStream()) {
+                    Files.copy(fileStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                String messageText = String.format(
+                    "[FILE] name=%s|type=%s|size=%d|path=%s",
+                    originalFilename,
+                    fileType,
+                    fileSize,
+                    uniqueFilename
+                );
+
+                if (chatHolder[0] != null) {
+                    Message message = new Message(
+                        chatHolder[0].getNextMessageId(),
+                        remetenteId,
+                        destinatarioId,
+                        messageText
+                    );
+                    chatHolder[0].sendMessage(message);
+                    
+                    return gson.toJson(new SendMessageResponse(true, message.getId()));
+                }
+                
+                return gson.toJson(new SendMessageResponse(false, -1));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return gson.toJson(new SendMessageResponse(false, -1));
+            }
+        });
+
+        get("/uploads/:filename", (req, res) -> {
+            try {
+                Path filePath = Paths.get("uploads", req.params("filename"));
+                if (Files.exists(filePath)) {
+                    String contentType = Files.probeContentType(filePath);
+                    if (contentType == null) {
+                        contentType = "application/octet-stream";
+                    }
+                    res.type(contentType);
+                    return Files.readAllBytes(filePath);
+                } else {
+                    res.status(404);
+                    return "File not found";
+                }
+            } catch (Exception e) {
+                res.status(500);
+                return "Error serving file: " + e.getMessage();
+            }
+        });
+
         // GRUPO
         post("/api/grupos", (req, res) -> {
             res.type("application/json");
@@ -186,6 +274,16 @@ public class HttpBridge {
         });
 
         get("/api/grupos", (req, res) -> {
+            res.type("application/json");
+            try {
+                List<Grupo> grupos = grupoHolder[0] != null
+                        ? grupoHolder[0].listarGruposComDetalhes()
+                        : Collections.emptyList();
+                return gson.toJson(grupos);
+            } catch (Exception e) {
+                return gson.toJson(Collections.emptyList());
+            }
+        });
             res.type("application/json");
             try {
                 List<Grupo> grupos = grupoHolder[0] != null
@@ -228,6 +326,8 @@ public class HttpBridge {
             res.type("application/json");
             try {
                 int userId = Integer.parseInt(req.params("userId"));
+                List<Grupo> grupos = grupoHolder[0] != null
+                        ? grupoHolder[0].listarGruposDoUsuario(userId)
                 List<Grupo> grupos = grupoHolder[0] != null
                         ? grupoHolder[0].listarGruposDoUsuario(userId)
                         : Collections.emptyList();

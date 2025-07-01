@@ -18,7 +18,7 @@ public class Grupo implements Serializable {
         this.nome = nome;
         this.descricao = descricao;
         this.criador = criador;
-        this.membros = new ArrayList<>(membros); // Create new list to avoid external modification
+        this.membros = new ArrayList<>(membros); 
     }
 
     public int getId() { return id; }
@@ -27,7 +27,7 @@ public class Grupo implements Serializable {
     public String getNome() { return nome; }
     public String getDescricao() { return descricao; }
     public String getCriador() { return criador; }
-    public List<Integer> getMembros() { return new ArrayList<>(membros); } // Return copy for safety
+    public List<Integer> getMembros() { return new ArrayList<>(membros); } 
 
     public void adicionarMembro(int userId) {
         if (!membros.contains(userId)) {
