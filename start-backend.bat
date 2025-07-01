@@ -1,7 +1,7 @@
 @echo off
 REM Compile Java files
 echo Compiling server and client...
-javac -cp ".;lib\*" server\rmi\*.java server\ServerApp.java client\HttpBridge.java utils\*.java
+javac -cp ".;lib\*" server\rmi\*.java server\model\*.java server\ServerApp.java client\HttpBridge.java utils\*.java
 
 IF %ERRORLEVEL% NEQ 0 (
     echo Compilation failed.

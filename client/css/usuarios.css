@@ -394,3 +394,51 @@ body {
 #modalPedidos .fechar:hover {
   background: #c62828;
 }
+
+/* Arquivos */
+.message-file a {
+  color: #007bff;
+  text-decoration: none;
+  padding: 8px 12px;
+  background-color: #f0f0f0;
+  border-radius: 18px;
+  display: inline-block;
+  margin: 4px 0;
+}
+
+.message-file a:hover {
+  text-decoration: underline;
+  background-color: #e0e0e0;
+}
+
+.message.sent .message-file a {
+  background-color: #dcf8c6;
+}
+
+.message.sent .message-file a:hover {
+  background-color: #c5e8a7;
+}
+
+#fileButton {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+#fileButton:hover {
+  background-color: #333333;
+}
+
+#fileButton:active {
+  transform: scale(0.98);
+}

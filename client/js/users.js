@@ -3,6 +3,7 @@ let currentUser = null;
 let currentGrupo = null;
 let isGrupo = false;
 let messagesInterval = null;
+let content;
 
 if (!loggedUserId || loggedUserId === -1) {
   alert("Usuário não logado corretamente!");
@@ -12,6 +13,19 @@ if (!loggedUserId || loggedUserId === -1) {
 document.addEventListener('DOMContentLoaded', () => {
   carregarUsuarios();
   carregarGrupos();
+
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'fileButton') {
+      document.getElementById('fileInput').click();
+    }
+  });
+
+  document.addEventListener('change', (e) => {
+    if (e.target && e.target.id === 'fileInput') {
+      enviarArquivo(e.target.files[0]);
+      e.target.value = '';
+    }
+  });
 });
 
 async function carregarUsuarios() {
@@ -78,6 +92,10 @@ function abrirChat(destinatario, grupo) {
     <div class="chat-input">
       <input type="text" id="messageInput" placeholder="Digite uma mensagem..." />
       <button id="sendButton">Enviar</button>
+      ${!grupo ? `
+        <input type="file" id="fileInput" style="display: none;" />
+        <button id="fileButton">Enviar Arquivo</button>
+      ` : ''}
     </div>
   `;
 
@@ -85,6 +103,18 @@ function abrirChat(destinatario, grupo) {
   document.getElementById("messageInput").addEventListener('keypress', (e) => {
     if (e.key === 'Enter') enviarMensagem();
   });
+
+  if (!grupo) {
+    document.getElementById('fileButton').addEventListener('click', () => {
+      document.getElementById('fileInput').click();
+    });
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        enviarArquivo(e.target.files[0]);
+        e.target.value = ''; 
+      }
+    });
+  }
 
   carregarMensagens();
 
@@ -140,7 +170,6 @@ async function carregarMensagens() {
         chat.appendChild(msgDiv);
       });
     } else {
-      // For private chats, use the existing logic
       mensagens.forEach(msg => {
         const time = msg.horario ? new Date(msg.horario).toLocaleTimeString([], {
           hour: '2-digit',
@@ -149,11 +178,24 @@ async function carregarMensagens() {
 
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${msg.userId === loggedUserId ? 'sent' : 'received'}`;
-        msgDiv.innerHTML = `
-          <div class="message-username">${msg.userId === loggedUserId ? "Você" : currentUser.nome}</div>
-          <div class="message-text">${escapeHtml(msg.texto)}</div>
-          <div class="message-time">${time}</div>
-        `;
+
+        if (msg.texto.startsWith("[FILE]")) {
+          const fileInfo = parseFileInfo(msg.texto);
+          msgDiv.innerHTML = `
+        <div class="message-username">${msg.userId === loggedUserId ? "Você" : currentUser.nome}</div>
+        <div class="message-file">
+          <a href="http://localhost:4567/uploads/${fileInfo.path}" download="${fileInfo.name}">
+            📁 ${fileInfo.name} (${formatFileSize(fileInfo.size)})
+          </a>
+        </div>
+        <div class="message-time">${time}</div>`;
+        } else {
+          msgDiv.innerHTML = `
+        <div class="message-username">${msg.userId === loggedUserId ? "Você" : currentUser.nome}</div>
+        <div class="message-text">${escapeHtml(msg.texto)}</div>
+        <div class="message-time">${time}</div>`;
+        }
+
         chat.appendChild(msgDiv);
       });
     }
@@ -303,4 +345,49 @@ function abrirModalPedidos(pedidos, grupo) {
 
 function fecharModalPedidos() {
   document.getElementById("modalPedidos").style.display = "none";
+}
+
+//Enviar arquivo
+async function enviarArquivo(file) {
+  if (!file || (!currentUser && !currentGrupo)) return;
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('remetenteId', loggedUserId.toString());
+  formData.append('destinatarioId', currentUser.id.toString());
+
+  try {
+    const response = await fetch("http://localhost:4567/api/messages/send-file", {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json();
+    
+    if (result.success) {
+      carregarMensagens();
+    } else {
+      alert("Erro ao enviar arquivo: " + (result.message || "Erro desconhecido"));
+    }
+  } catch (error) {
+    console.error("Error sending file:", error);
+    alert("Erro ao enviar arquivo");
+  }
+}
+
+function parseFileInfo(text) {
+  const parts = text.substring(7).split("|");
+  const info = {};
+  parts.forEach(part => {
+    const [key, value] = part.split("=");
+    info[key] = value;
+  });
+  return info;
+}
+
+function formatFileSize(bytes) {
+  if (typeof bytes !== 'number') return '';
+  if (bytes < 1024) return bytes + " bytes";
+  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+  else return (bytes / 1048576).toFixed(1) + " MB";
 }

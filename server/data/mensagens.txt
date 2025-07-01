@@ -7,3 +7,8 @@
 29;3;3;1751347477680;isa;G
 30;2;3;1751347485517;teste;G
 32;3;3;1751348431509;Mensagem longa ............................................................................................................;G
+33;3;7;1751352439797;[FILE] name=csgo_round_snapshots.csv|type=application/vnd.ms-excel|size=50410839|path=1751352439763_3_csgo_round_snapshots.csv;U
+34;3;7;1751352447033;[FILE] name=csgo_round_snapshots.csv|type=application/vnd.ms-excel|size=50410839|path=1751352446987_3_csgo_round_snapshots.csv;U
+35;3;3;1751352647145;[FILE] name=csgo_round_snapshots.csv|type=application/vnd.ms-excel|size=50410839|path=1751352647106_3_csgo_round_snapshots.csv;U
+36;7;3;1751352952336;[FILE] name=csgo_round_snapshots.csv|type=application/vnd.ms-excel|size=50410839|path=1751352952303_7_csgo_round_snapshots.csv;U
+37;3;7;1751353088676;[FILE] name=csgo_round_snapshots.csv|type=application/vnd.ms-excel|size=50410839|path=1751353088618_3_csgo_round_snapshots.csv;U
