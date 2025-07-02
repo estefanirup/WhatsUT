@@ -727,3 +727,57 @@ async function adicionarUsuarioAoGrupo(grupoId, usuarioId) {
 function fecharModalMembros() {
   document.getElementById("modalMembros").style.display = "none";
 }
+
+async function aprovarUsuario(grupoId, usuarioId) {
+  try {
+    const resposta = await fetch("http://localhost:4567/api/grupos/aprovar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grupoId, adminId: loggedUserId, usuarioId })
+    });
+
+    const data = await resposta.json();
+    if (!data.success) {
+      throw new Error(data.error || "Erro ao aprovar usuário");
+    }
+  } catch (e) {
+    console.error("Erro ao aprovar usuário:", e);
+    alert("Erro ao aprovar usuário.");
+  }
+}
+
+async function rejeitarUsuario(grupoId, usuarioId) {
+  try {
+    const resposta = await fetch("http://localhost:4567/api/grupos/rejeitar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grupoId, adminId: loggedUserId, usuarioId })
+    });
+
+    const data = await resposta.json();
+    if (!data.success) {
+      throw new Error(data.error || "Erro ao rejeitar usuário");
+    }
+  } catch (e) {
+    console.error("Erro ao rejeitar usuário:", e);
+    alert("Erro ao rejeitar usuário.");
+  }
+}
+
+async function banirUsuario(grupoId, usuarioId) {
+  try {
+    const resposta = await fetch("http://localhost:4567/api/grupos/banir", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ grupoId, adminId: loggedUserId, usuarioParaBanir: usuarioId })
+    });
+
+    const data = await resposta.json();
+    if (!data.success) {
+      throw new Error(data.error || "Erro ao banir usuário");
+    }
+  } catch (e) {
+    console.error("Erro ao banir usuário:", e);
+    alert("Erro ao banir usuário.");
+  }
+}

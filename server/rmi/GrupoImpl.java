@@ -119,15 +119,12 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
 
     // --- MÉTODOS PRINCIPAIS ---
     @Override
-    public synchronized boolean criarGrupo(int id, int idAdmin, String nome, String descricao, String criador,
+    public synchronized boolean criarGrupo(int ignorar, int idAdmin, String nome, String descricao, String criador,
             List<Integer> membros) throws RemoteException {
         if (nome == null || nome.trim().isEmpty()) {
             return false;
         }
         int newId = grupos.isEmpty() ? 1 : Collections.max(grupos.keySet()) + 1;
-        if (grupos.containsKey(newId)) {
-            return false;
-        }
 
         Grupo grupo = new Grupo(newId, idAdmin, nome.trim(), descricao, criador, membros);
         grupos.put(newId, grupo);
@@ -310,7 +307,7 @@ public class GrupoImpl extends UnicastRemoteObject implements GrupoInterface {
         if (grupo == null)
             return false;
 
-        List<Integer> membros = grupo.getMembros(); 
+        List<Integer> membros = grupo.getMembros();
         return membros.contains(usuarioId);
     }
 
